@@ -9,7 +9,12 @@
 #endif
 
 namespace {
-    REGEXP * RE2_comp(pTHX_ const SV * const, U32);
+    REGEXP * RE2_comp(pTHX_ 
+// Constness differs on different versions of Perl
+#if PERL_VERSION == 10
+            const
+#endif
+            SV * const, U32);
     I32      RE2_exec(pTHX_ REGEXP * const, char *, char *,
                       char *, I32, SV *, void *, U32);
     char *   RE2_intuit(pTHX_ REGEXP * const, SV *, char *,
@@ -42,7 +47,11 @@ const regexp_engine re2_engine = {
 namespace {
 
 REGEXP *
-RE2_comp(pTHX_ const SV * const pattern, const U32 flags)
+RE2_comp(pTHX_
+#if PERL_VERSION == 10
+        const
+#endif
+        SV * const pattern, const U32 flags)
 {
     REGEXP *rx_sv;
 
@@ -79,8 +88,13 @@ RE2_comp(pTHX_ const SV * const pattern, const U32 flags)
         perl_only = true; /* /m */
 
     /* The pattern is not UTF-8. Tell RE2 to treat it as Latin1. */
+#ifdef RXf_UTF8
     if (!(flags & RXf_UTF8))
         options.set_encoding(RE2::Options::EncodingLatin1);
+#else
+    if (!SvUTF8(pattern))
+        options.set_encoding(RE2::Options::EncodingLatin1);
+#endif
 
     // XXX: Probably should allow control of this somehow
     options.set_log_errors(false);
@@ -141,26 +155,27 @@ RE2_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
           void *data, U32 flags)
 {
     RE2 * ri = (RE2*) RegSV(rx)->pprivate;
+    regexp * re = RegSV(rx);
 
-    re2::StringPiece res[rx->nparens];
+    re2::StringPiece res[re->nparens];
 
     bool ok = ri->Match(
             re2::StringPiece(stringarg, strend - stringarg),
             strbeg - stringarg,
             RE2::UNANCHORED,
-            res, (int)rx->nparens);
+            res, (int)re->nparens);
 
     /* Matching failed */
     if (!ok) {
         return 0;
     }
 
-    rx->subbeg = strbeg;
-    rx->sublen = strend - strbeg;
+    re->subbeg = strbeg;
+    re->sublen = strend - strbeg;
 
-    for (int i = 0; i < rx->nparens; i++) {
-        rx->offs[i].start = res[i].data() - stringarg;
-        rx->offs[i].end   = rx->offs[i].start + res[i].length();
+    for (int i = 0; i < re->nparens; i++) {
+        re->offs[i].start = res[i].data() - stringarg;
+        re->offs[i].end   = re->offs[i].start + res[i].length();
     }
 
     return 1;
