@@ -48,6 +48,8 @@ Replaces / arguments perl's regex engine in a given lexical scope with RE2.
 
 Rather under development, this is just to show it's possible!
 
+See L<http://github.com/dgl/re-engine-RE2>
+
 =head1 AUTHORS
 
 David Leadbeater E<lt>dgl[at]dgl[dot]cxE<gt>
