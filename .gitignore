@@ -1,0 +1,11 @@
+inc
+META.yml
+MANIFEST.*bak
+Makefile
+Makefile.old
+.*.sw[op]
+blib
+pm_to_blib
+*.tar.gz
+re2/obj
+re2/re2/*.pyc
