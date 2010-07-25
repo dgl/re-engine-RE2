@@ -101,7 +101,7 @@ RE2_comp(pTHX_
 
     // Try and compile first, if this fails we will fallback to Perl regex via
     // Perl_re_compile.
-    RE2 * ri;
+    RE2 * ri = NULL;
 
     if (!perl_only) {
         ri = new RE2 (re2::StringPiece(exp, plen), options);
