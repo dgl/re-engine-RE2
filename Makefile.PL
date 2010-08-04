@@ -23,6 +23,7 @@ WriteMakefile(
   INC           => '-Ire2',
   PMLIBDIRS     => ["lib"],
   OBJECT        => join(" ", @objects),
-  LIBS          => "-lstdc++ -lpthread"
+  LIBS          => "-lstdc++ -lpthread",
+  test          => {TESTS => 't/*.t t/ree-pcre/*.t'},
 );
 
