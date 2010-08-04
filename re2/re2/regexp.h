@@ -301,7 +301,7 @@ class Regexp {
                            //   it explicitly.
 
     // As close to Perl as we can get.
-    LikePerl     = ClassNL | OneLine | PerlClasses | PerlB | PerlX |
+    LikePerl     = ClassNL | PerlClasses | PerlB | PerlX |
                    UnicodeGroups,
 
     // Internal use only.
