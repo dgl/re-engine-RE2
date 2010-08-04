@@ -78,15 +78,15 @@ RE2_comp(pTHX_
     else if (plen == 3 && strnEQ("\\s+", exp, 3))
         extflags |= RXf_WHITE;
 
-    /* Perl modifiers to flags, /s is implicit and /p isn't used
-     * but they pose no problem so ignore them */
-    if (flags & RXf_PMf_FOLD)
-        options.set_case_sensitive(false); /* /i */
     if (flags & RXf_PMf_EXTENDED)
         perl_only = true;  /* /x */
-    if (flags & RXf_PMf_MULTILINE) // XXX: actually is this backwards?
-        perl_only = true; /* /m */
 
+    options.set_case_sensitive(!(flags & RXf_PMf_FOLD)); /* /i */
+    options.set_one_line(!(flags & RXf_PMf_MULTILINE)); /* not /m */
+    /* XXX: handle /s (needs RE2 changes to expose interface, don't really want
+       to get into prepending (?s) modifiers to the regexp itself. */
+
+    // XXX: Need to compile two versions?
     /* The pattern is not UTF-8. Tell RE2 to treat it as Latin1. */
 #ifdef RXf_UTF8
     if (!(flags & RXf_UTF8))
@@ -105,7 +105,6 @@ RE2_comp(pTHX_
 
     if (!perl_only) {
         ri = new RE2 (re2::StringPiece(exp, plen), options);
-        //XXX: try/catch
     }
 
     if (perl_only || ri->error_code()) {
@@ -125,13 +124,16 @@ RE2_comp(pTHX_
     rx->extflags = extflags;
     rx->engine   = &re2_engine;
 
-    /* Preserve a copy of the original pattern */
-    /*RX_PRELEN(rx_sv) = (I32)plen;
-    RX_PRECOMP(rx_sv) = SAVEPVN(exp, plen);*/
-
     /* qr// stringification, TODO: (?flags:pattern) */
-    /*RX_WRAPLEN(rx_sv) = RX_PRELEN(rx);
-    RX_WRAPPED(rx_sv) = RX_PRECOMP(rx);*/
+    RX_WRAPPED(rx_sv) = savepvn(exp, plen);
+
+#if PERL_VERSION == 10
+    RX_WRAPLEN(rx) = plen;
+
+    /* Preserve a copy of the original pattern */
+    rx->prelen = (I32)plen;
+    rx->precomp = savepvn(exp, plen);
+#endif
 
     /* Store our private object */
     rx->pprivate = (void *) ri;
@@ -141,7 +143,7 @@ RE2_comp(pTHX_
     /* If named captures are defined make rx->paren_names */
 #endif
 
-    rx->nparens = rx->lastparen = rx->lastcloseparen = 1 + ri->NumberOfCapturingGroups();
+    rx->lastparen = rx->lastcloseparen = rx->nparens = ri->NumberOfCapturingGroups();
 
     Newxz(rx->offs, rx->nparens + 1, regexp_paren_pair);
     
@@ -157,13 +159,17 @@ RE2_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
     RE2 * ri = (RE2*) RegSV(rx)->pprivate;
     regexp * re = RegSV(rx);
 
-    re2::StringPiece res[re->nparens];
+    re2::StringPiece res[re->nparens + 1];
+
+    if(flags & REXEC_IGNOREPOS) {
+        stringarg += RX_GOFS(rx);
+    }
 
     bool ok = ri->Match(
-            re2::StringPiece(stringarg, strend - stringarg),
-            strbeg - stringarg,
+            re2::StringPiece(strbeg, strend - strbeg),
+            stringarg - strbeg,
             RE2::UNANCHORED,
-            res, (int)re->nparens);
+            res, sizeof res / sizeof *res);
 
     /* Matching failed */
     if (!ok) {
@@ -173,10 +179,12 @@ RE2_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
     re->subbeg = strbeg;
     re->sublen = strend - strbeg;
 
-    for (int i = 0; i < re->nparens; i++) {
-        re->offs[i].start = res[i].data() - stringarg;
-        re->offs[i].end   = re->offs[i].start + res[i].length();
+    for (int i = 0; i <= re->nparens; i++) {
+        re->offs[i].start = res[i].data() - strbeg;
+        re->offs[i].end   = res[i].data() - strbeg + res[i].length();
     }
+
+    RX_GOFS(rx) = re->offs[0].end;
 
     return 1;
 }

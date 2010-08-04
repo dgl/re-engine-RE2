@@ -1,5 +1,3 @@
-BEGIN { %ENV = () }
-
 use strict;
 use Test::More tests => 6;
 use re::engine::RE2;

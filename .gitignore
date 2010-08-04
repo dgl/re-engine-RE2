@@ -7,5 +7,8 @@ Makefile.old
 blib
 pm_to_blib
 *.tar.gz
+*.o
 re2/obj
 re2/re2/*.pyc
+RE2.bs
+RE2.c
