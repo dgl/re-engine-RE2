@@ -161,6 +161,11 @@ RE2_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
 
     re2::StringPiece res[re->nparens + 1];
 
+//#define RE2_DEBUG
+#ifdef RE2_DEBUG
+    Perl_warner(aTHX_ packWARN(WARN_MISC), "RE2: Matching '%s' against '%s'", stringarg, RX_WRAPPED(rx));
+#endif
+
     if(flags & REXEC_IGNOREPOS) {
         stringarg += RX_GOFS(rx);
     }
