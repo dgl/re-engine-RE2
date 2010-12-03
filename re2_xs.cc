@@ -185,8 +185,16 @@ RE2_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
     re->sublen = strend - strbeg;
 
     for (int i = 0; i <= re->nparens; i++) {
-        re->offs[i].start = res[i].data() - strbeg;
-        re->offs[i].end   = res[i].data() - strbeg + res[i].length();
+#ifdef RE2_DEBUG
+    Perl_warner(aTHX_ packWARN(WARN_MISC), "RE2: Result %d: %x %x %x", i, res[i].dat
+#endif
+        if(res[i].data()) {
+            re->offs[i].start = res[i].data() - strbeg;
+            re->offs[i].end   = res[i].data() - strbeg + res[i].length();
+        } else {
+            re->offs[i].start = -1;
+            re->offs[i].end   = -1;
+        }
     }
 
     RX_GOFS(rx) = re->offs[0].end;

@@ -10,9 +10,6 @@ my $res = "this is a URL: http://github.com" =~ $re;
 ok $res;
 is $1, "http://github.com";
 
-{
-  local $TODO;
+my @url = "this is a URL: http://github.com" =~ $re;
+is_deeply \@url, ["http://github.com", (undef) x 4];
 
-  my @url = "this is a URL: http://github.com" =~ $re;
-  is_deeply \@url, ["http://github.com"];
-}
