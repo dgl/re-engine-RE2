@@ -170,6 +170,12 @@ RE2_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
         stringarg += RX_GOFS(rx);
     }
 
+    if(stringarg > strend) {
+      re->offs[0].start = -1;
+      re->offs[0].end   = -1;
+      return 0;
+    }
+
     bool ok = ri->Match(
             re2::StringPiece(strbeg, strend - strbeg),
             stringarg - strbeg,
