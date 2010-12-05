@@ -249,4 +249,19 @@ RE2_package(pTHX_ REGEXP * const rx)
 }
 
 };
+
+// Unnamespaced
+extern "C" void RE2_possible_match_range(REGEXP* rx, STRLEN len, SV** min_sv, SV** max_sv)
+{
+    RE2* re2 = (RE2*) RegSV(rx)->pprivate;
+    std::string min, max;
+
+    re2->PossibleMatchRange(&min, &max, (int)len);
+
+    *min_sv = newSVpvn(min.data(), min.size());
+    *max_sv = newSVpvn(max.data(), max.size());
+
+    return;
+}
+
 // ex:sw=4 et:
