@@ -50,6 +50,27 @@ Rather under development, this is just to show it's possible!
 
 See L<http://github.com/dgl/re-engine-RE2>
 
+=head1 METHODS
+
+To access extra functionality of RE2 methods can be called on a compiled
+regular expression (i.e. a C<qr//>).
+
+=over 4
+
+=item * C<possible_match_range([length = 10])>
+
+Returns an array of two strings: where the expression will start matching and
+just after where it will finish matching. See RE2's documention on
+PossibleMatchRange for further details.
+
+Example:
+
+    my($min, $max) = qr/^(a|b)/->possible_match_range;
+    is $min, 'a';
+    is $max, 'c';'
+
+=back
+
 =head1 AUTHORS
 
 David Leadbeater E<lt>dgl[at]dgl[dot]cxE<gt>
