@@ -9,7 +9,7 @@
 #endif
 
 namespace {
-    REGEXP * RE2_comp(pTHX_ 
+    REGEXP * RE2_comp(pTHX_
 // Constness differs on different versions of Perl
 #if PERL_VERSION == 10
             const
@@ -39,7 +39,7 @@ const regexp_engine re2_engine = {
     Perl_reg_named_buff,
     Perl_reg_named_buff_iter,
     RE2_package,
-#if defined(USE_ITHREADS)        
+#if defined(USE_ITHREADS)
     RE2_dupe,
 #endif
 };
@@ -146,7 +146,7 @@ RE2_comp(pTHX_
     rx->lastparen = rx->lastcloseparen = rx->nparens = ri->NumberOfCapturingGroups();
 
     Newxz(rx->offs, rx->nparens + 1, regexp_paren_pair);
-    
+
     /* return the regexp */
     return rx_sv;
 }
