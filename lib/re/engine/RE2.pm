@@ -30,7 +30,7 @@ sub unimport
 
 __END__
 
-=head1 NAME 
+=head1 NAME
 
 re::engine::RE2 - RE2 regex engine
 

@@ -124,15 +124,40 @@ RE2_comp(pTHX_
     rx->extflags = extflags;
     rx->engine   = &re2_engine;
 
-    /* qr// stringification, TODO: (?flags:pattern) */
-    RX_WRAPPED(rx_sv) = savepvn(exp, plen);
+    /* qr// stringification */
+    SV * wrapped = newSVpvn("(?", 2), * wrapped_unset = newSVpvn("", 0);
+    sv_2mortal(wrapped);
+    sv_2mortal(wrapped_unset);
+
+    sv_catpvn(flags & RXf_PMf_FOLD ? wrapped : wrapped_unset, "i", 1);
+    sv_catpvn(flags & RXf_PMf_EXTENDED ? wrapped : wrapped_unset, "x", 1);
+    sv_catpvn(flags & RXf_PMf_MULTILINE ? wrapped : wrapped_unset, "m", 1);
+
+    if (SvCUR(wrapped_unset)) {
+      sv_catpvn(wrapped, "-", 1);
+      sv_catsv(wrapped, wrapped_unset);
+    }
+
+    sv_catpvn(wrapped, ":", 1);
+#if PERL_VERSION > 10
+    rx->pre_prefix = SvCUR(wrapped);
+#endif
+
+    sv_catpvn(wrapped, exp, plen);
+    sv_catpvn(wrapped, ")", 1);
 
 #if PERL_VERSION == 10
-    RX_WRAPLEN(rx) = plen;
+    rx->wraplen = SvCUR(wrapped);
+    rx->wrapped = savepvn(SvPVX(wrapped), SvCUR(wrapped));
+#else
+    RX_WRAPPED(rx_sv) = savepvn(SvPVX(wrapped), SvCUR(wrapped));
+    RX_WRAPLEN(rx_sv) = SvCUR(wrapped);
+#endif
 
+#if PERL_VERSION == 10
     /* Preserve a copy of the original pattern */
     rx->prelen = (I32)plen;
-    rx->precomp = savepvn(exp, plen);
+    rx->precomp = SAVEPVN(exp, plen);
 #endif
 
     /* Store our private object */
@@ -163,12 +188,8 @@ RE2_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
 
 //#define RE2_DEBUG
 #ifdef RE2_DEBUG
-    Perl_warner(aTHX_ packWARN(WARN_MISC), "RE2: Matching '%s' against '%s'", stringarg, RX_WRAPPED(rx));
+    Perl_warner(aTHX_ packWARN(WARN_MISC), "RE2: Matching '%s' (%p, %p) against '%s'", stringarg, strbeg, stringarg, RX_WRAPPED(rx));
 #endif
-
-    if(flags & REXEC_IGNOREPOS) {
-        stringarg += RX_GOFS(rx);
-    }
 
     if(stringarg > strend) {
       re->offs[0].start = -1;
@@ -191,9 +212,6 @@ RE2_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
     re->sublen = strend - strbeg;
 
     for (int i = 0; i <= re->nparens; i++) {
-#ifdef RE2_DEBUG
-    Perl_warner(aTHX_ packWARN(WARN_MISC), "RE2: Result %d: %x %x %x", i, res[i].dat
-#endif
         if(res[i].data()) {
             re->offs[i].start = res[i].data() - strbeg;
             re->offs[i].end   = res[i].data() - strbeg + res[i].length();
@@ -202,8 +220,6 @@ RE2_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
             re->offs[i].end   = -1;
         }
     }
-
-    RX_GOFS(rx) = re->offs[0].end;
 
     return 1;
 }
