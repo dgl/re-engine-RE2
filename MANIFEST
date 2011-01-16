@@ -1,14 +1,17 @@
+Changes
 lib/re/engine/RE2.pm
 Makefile.PL
 MANIFEST			This list of files
+MANIFEST.SKIP
 RE2.xs
-re2/Makefile
 re2/.hgignore
 re2/AUTHORS
 re2/CONTRIBUTORS
 re2/libre2.symbols
 re2/libre2.symbols.darwin
 re2/LICENSE
+re2/Makefile
+re2/obj/so/libre2.so.0
 re2/re2/bitstate.cc
 re2/re2/compile.cc
 re2/re2/dfa.cc
@@ -17,6 +20,7 @@ re2/re2/filtered_re2.h
 re2/re2/make_perl_groups.pl
 re2/re2/make_unicode_casefold.py
 re2/re2/make_unicode_groups.py
+re2/re2/Makefile
 re2/re2/mimics_pcre.cc
 re2/re2/nfa.cc
 re2/re2/onepass.cc
@@ -113,3 +117,19 @@ re2_xs.cc
 re2_xs.h
 t/00.compile.t
 t/01.basic.t
+t/02.chars.t
+t/03.modifiers.t
+t/04.multiline.t
+t/05.url.t
+t/06.matchrange.t
+t/07.utf8.t
+t/08.pos.t
+t/ree-pcre/capture.t
+t/ree-pcre/import.t
+t/ree-pcre/match.t
+t/ree-pcre/qr.t
+t/ree-pcre/s.t
+t/ree-pcre/split-null.t
+t/ree-pcre/split.t
+t/ree-pcre/subexp.t
+t/ree-pcre/unimport.t
