@@ -157,7 +157,7 @@ RE2_comp(pTHX_
 #if PERL_VERSION == 10
     /* Preserve a copy of the original pattern */
     rx->prelen = (I32)plen;
-    rx->precomp = SAVEPVN(exp, plen);
+    rx->precomp = savepvn(exp, plen);
 #endif
 
     /* Store our private object */
