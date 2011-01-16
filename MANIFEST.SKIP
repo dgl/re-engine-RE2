@@ -42,3 +42,4 @@
 MYMETA.yml
 
 ^misc/
+^re2/obj/
