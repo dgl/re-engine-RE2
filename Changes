@@ -1,3 +1,6 @@
+0.02 2011-01-22
+- Use ExtUtils::CppGuess and try to find GNU make
+
 0.01 2011-01-16
 - Fixes for //g, captures, generally many things
 
