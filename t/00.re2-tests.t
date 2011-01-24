@@ -3,7 +3,9 @@ no warnings;
 
 my $make = $ENV{MAKE} || "make";
 
-for(qx{$make re2-tests}) {
+my @results = qx{$make re2-tests};
+
+for(@results) {
   if(my($test, $result, $diag) = $_ =~ /^(obj[^ ]+)\s+(PASS|FAIL)(.*)/) {
     if($result eq 'PASS') {
       pass $test;
@@ -17,6 +19,11 @@ for(qx{$make re2-tests}) {
       }
     }
   }
+}
+
+if("@results" !~ /PASS|FAIL/) {
+  diag @results;
+  plan skip_all => "Unable to compile RE2 tests for some reason";
 }
 
 done_testing;
