@@ -1,3 +1,7 @@
+0.03 2011-01-23
+- Pass more options from MakeMaker to RE2, should now work on x86_64 again
+- Run RE2's own test suite as part of build if we can
+
 0.02 2011-01-22
 - Use ExtUtils::CppGuess and try to find GNU make
 
