@@ -115,6 +115,7 @@ re2/util/valgrind.h
 re2_xs.cc
 re2_xs.h
 t/00.compile.t
+t/00.re2-tests.t
 t/01.basic.t
 t/02.chars.t
 t/03.modifiers.t

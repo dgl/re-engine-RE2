@@ -1,8 +1,9 @@
 use Test::More;
-require './MY.pm';
 no warnings;
 
-for(qx{$MY::MAKE -C re2 static-test}) {
+my $make = $ENV{MAKE} || "make";
+
+for(qx{$make re2-tests}) {
   if(my($test, $result, $diag) = $_ =~ /^(obj[^ ]+)\s+(PASS|FAIL)(.*)/) {
     if($result eq 'PASS') {
       pass $test;
