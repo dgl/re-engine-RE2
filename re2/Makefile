@@ -9,10 +9,10 @@ all: obj/libre2.a obj/so/libre2.so
 # CCPCRE=-I/usr/local/include -DUSEPCRE
 # LDPCRE=-L/usr/local/lib -lpcre
 
-CC=g++
-CXXFLAGS=-Wall -O3 -g -pthread  # can override
+#CC=g++
+#CXXFLAGS=-Wall -O3 -g -pthread # can override
 RE2_CXXFLAGS=-Wno-sign-compare -c -I. $(CCPCRE)  # required
-LDFLAGS=-pthread
+#LDFLAGS=-pthread
 AR=ar
 ARFLAGS=rsc
 NM=nm
@@ -54,7 +54,6 @@ HFILES=\
 	util/atomicops.h\
 	util/benchmark.h\
 	util/flags.h\
-	util/hash_map.h\
 	util/logging.h\
 	util/mutex.h\
 	util/pcre.h\

@@ -72,7 +72,7 @@ enum EmptyOp {
 class Regexp;
 
 class DFA;
-class OneState;
+struct OneState;
 
 // Compiled form of regexp program.
 class Prog {
@@ -164,7 +164,7 @@ class Prog {
     };
 
     friend class Compiler;
-    friend class PatchList;
+    friend struct PatchList;
     friend class Prog;
 
     DISALLOW_EVIL_CONSTRUCTORS(Inst);

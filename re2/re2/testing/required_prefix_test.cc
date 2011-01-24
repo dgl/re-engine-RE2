@@ -40,7 +40,7 @@ TEST(RequiredPrefix, SimpleTests) {
   for (int i = 0; i < arraysize(tests); i++) {
     const PrefixTest& t = tests[i];
     for (int j = 0; j < 2; j++) {
-      Regexp::ParseFlags flags = Regexp::LikePerl;
+      Regexp::ParseFlags flags = Regexp::LikePerl | Regexp::OneLine;
       if (j == 0)
         flags = flags | Regexp::Latin1;
       Regexp* re = Regexp::Parse(t.regexp, flags, NULL);

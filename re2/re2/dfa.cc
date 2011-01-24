@@ -115,7 +115,7 @@ class DFA {
     kFlagNeedShift = 16,        // needed kEmpty bits are or'ed in shifted left
   };
 
-  // STL function structures for use with hash_set.
+  // STL function structures for use with unordered_set.
   struct StateEqual {
     bool operator()(const State* a, const State* b) const {
       if (a == b)
@@ -145,7 +145,7 @@ class DFA {
     }
   };
 
-  typedef hash_set<State*, StateHash, StateEqual> StateSet;
+  typedef unordered_set<State*, StateHash, StateEqual> StateSet;
 
 
  private:
@@ -416,7 +416,7 @@ DFA::DFA(Prog* prog, Prog::MatchKind kind, int64 max_mem)
   if (DebugDFA)
     fprintf(stderr, "\nkind %d\n%s\n", (int)kind_, prog_->DumpUnanchored().c_str());
   int nmark = 0;
-  start_unanchored_ = NULL;
+  start_unanchored_ = 0;
   if (kind_ == Prog::kLongestMatch) {
     nmark = prog->size();
     start_unanchored_ = prog->start_unanchored();

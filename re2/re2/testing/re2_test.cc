@@ -7,9 +7,6 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <unistd.h>
 #include <vector>
 #include "util/test.h"
 #include "re2/re2.h"
@@ -1262,7 +1259,15 @@ TEST(RE2, Bug1816809) {
   RE2 re("(((((llx((-3)|(4)))(;(llx((-3)|(4))))*))))");
   StringPiece piece("llx-3;llx4");
   string x;
-  CHECK(RE2::Consume(&piece, re, &x));
+  EXPECT_TRUE(RE2::Consume(&piece, re, &x));
+}
+
+// Issue 3061120
+TEST(RE2, Bug3061120) {
+  RE2 re("(?i)\\W");
+  EXPECT_FALSE(RE2::PartialMatch("x", re));  // always worked
+  EXPECT_FALSE(RE2::PartialMatch("k", re));  // broke because of kelvin
+  EXPECT_FALSE(RE2::PartialMatch("s", re));  // broke because of latin long s
 }
 
 }  // namespace re2

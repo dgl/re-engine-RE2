@@ -90,7 +90,6 @@ re2/util/benchmark.cc
 re2/util/benchmark.h
 re2/util/flags.h
 re2/util/hash.cc
-re2/util/hash_map.h
 re2/util/logging.h
 re2/util/mutex.h
 re2/util/pcre.cc
