@@ -2,7 +2,7 @@ package re::engine::RE2;
 use 5.010;
 
 BEGIN {
-  $re::engine::RE2::VERSION = "0.03";
+  $re::engine::RE2::VERSION = "0.04";
 }
 
 use XSLoader ();

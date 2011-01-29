@@ -30,8 +30,13 @@ my %opt = (
 );
 
 if($Config{usethreads} eq 'define') {
-  if($Config{i_pthread} eq 'define') {
+  if(defined $Config{i_pthread} && $Config{i_pthread} eq 'define') {
     $opt{DEFINE} = "-DHAVE_PTHREAD -pthread";
+  } else {
+    # For now this allows compilation under Win32/Strawberry
+    # I'm not sure Perl needs thread safety from RE2 anyway as normally SVs
+    # aren't shared but they might be..., needs some thought.
+    $opt{DEFINE} = "-DNO_THREADS";
   }
 } else {
   $opt{DEFINE} = "-DNO_THREADS";

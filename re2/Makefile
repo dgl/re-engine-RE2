@@ -37,11 +37,11 @@ SONAME=0
 # access for Unicode data), uncomment the following line:
 # REBUILD_TABLES=1
 
-ifeq ($(shell uname),Darwin)
-MAKE_SHARED_LIBRARY=g++ -dynamiclib $(LDFLAGS) -exported_symbols_list libre2.symbols.darwin
-else
-MAKE_SHARED_LIBRARY=g++ -shared -Wl,-soname,libre2.so.0,--version-script=libre2.symbols $(LDFLAGS)
-endif
+#ifeq ($(shell uname),Darwin)
+#MAKE_SHARED_LIBRARY=g++ -dynamiclib $(LDFLAGS) -exported_symbols_list libre2.symbols.darwin
+#else
+#MAKE_SHARED_LIBRARY=g++ -shared -Wl,-soname,libre2.so.0,--version-script=libre2.symbols $(LDFLAGS)
+#endif
 
 INSTALL_HFILES=\
 	re2/re2.h\
@@ -155,57 +155,53 @@ DTESTOFILES=$(patsubst obj/%,obj/dbg/%,$(TESTOFILES))
 DTESTS=$(patsubst obj/%,obj/dbg/%,$(TESTS))
 DBIGTESTS=$(patsubst obj/%,obj/dbg/%,$(BIGTESTS))
 
-obj/%.o: %.cc $(HFILES)
-	@mkdir -p $$(dirname $@)
+obj:
+	mkdir $@
+
+obj/re2: obj
+	cd obj && mkdir re2 || echo Okay
+
+obj/util: obj
+	cd obj && mkdir util || echo Okay
+
+obj/%.o: obj/re2 obj/util %.cc $(HFILES)
 	$(CC) -o $@ $(CXXFLAGS) $(RE2_CXXFLAGS) -DNDEBUG $*.cc
 
-obj/dbg/%.o: %.cc $(HFILES)
-	@mkdir -p $$(dirname $@)
+obj/dbg/%.o: obj/dbg %.cc $(HFILES)
 	$(CC) -o $@ -fPIC $(CXXFLAGS) $(RE2_CXXFLAGS) $*.cc
 
-obj/so/%.o: %.cc $(HFILES)
-	@mkdir -p $$(dirname $@)
+obj/so/%.o: obj/so %.cc $(HFILES)
 	$(CC) -o $@ -fPIC $(CXXFLAGS) $(RE2_CXXFLAGS) -DNDEBUG $*.cc
 
-obj/%.o: %.c $(HFILES)
-	@mkdir -p $$(dirname $@)
+obj/%.o: obj %.c $(HFILES)
 	$(CC) -o $@ $(CXXFLAGS) $(RE2_CXXFLAGS) -DNDEBUG $*.c
 
-obj/dbg/%.o: %.c $(HFILES)
-	@mkdir -p $$(dirname $@)
+obj/dbg/%.o: obj/dbg %.c $(HFILES)
 	$(CC) -o $@ $(CXXFLAGS) $(RE2_CXXFLAGS) $*.c
 
-obj/so/%.o: %.c $(HFILES)
-	@mkdir -p $$(dirname $@)
+obj/so/%.o: obj/so %.c $(HFILES)
 	$(CC) -o $@ -fPIC $(CXXFLAGS) $(RE2_CXXFLAGS) -DNDEBUG $*.c
 
 obj/libre2.a: $(OFILES)
-	@mkdir -p obj
 	$(AR) $(ARFLAGS) obj/libre2.a $(OFILES)
 
-obj/dbg/libre2.a: $(DOFILES)
-	@mkdir -p obj/dbg
+obj/dbg/libre2.a: obj/dbg $(DOFILES)
 	$(AR) $(ARFLAGS) obj/dbg/libre2.a $(DOFILES)
 
-obj/so/libre2.so: $(SOFILES)
-	@mkdir -p obj/so
+obj/so/libre2.so: obj/so $(SOFILES)
 	$(MAKE_SHARED_LIBRARY) -o $@.0 $(SOFILES)
 	ln -sf libre2.so.0 $@
 
-obj/test/%: obj/libre2.a obj/re2/testing/%.o $(TESTOFILES) obj/util/test.o
-	@mkdir -p obj/test
+obj/test/%: obj/test obj/libre2.a obj/re2/testing/%.o $(TESTOFILES) obj/util/test.o
 	$(CC) -o $@ obj/re2/testing/$*.o $(TESTOFILES) obj/util/test.o obj/libre2.a $(LDFLAGS) $(LDPCRE)
 
-obj/dbg/test/%: obj/dbg/libre2.a obj/dbg/re2/testing/%.o $(DTESTOFILES) obj/dbg/util/test.o
-	@mkdir -p obj/dbg/test
+obj/dbg/test/%: obj/dbg/test obj/dbg/libre2.a obj/dbg/re2/testing/%.o $(DTESTOFILES) obj/dbg/util/test.o
 	$(CC) -o $@ obj/dbg/re2/testing/$*.o $(DTESTOFILES) obj/dbg/util/test.o obj/dbg/libre2.a $(LDFLAGS) $(LDPCRE)
 
 obj/so/test/%: obj/so/libre2.so obj/libre2.a obj/so/re2/testing/%.o $(STESTOFILES) obj/so/util/test.o
-	@mkdir -p obj/so/test
 	$(CC) -o $@ obj/so/re2/testing/$*.o $(STESTOFILES) obj/so/util/test.o -Lobj/so -lre2 obj/libre2.a $(LDFLAGS) $(LDPCRE)
 
-obj/test/regexp_benchmark: obj/libre2.a obj/re2/testing/regexp_benchmark.o $(TESTOFILES) obj/util/benchmark.o
-	@mkdir -p obj/test
+obj/test/regexp_benchmark: obj/test obj/libre2.a obj/re2/testing/regexp_benchmark.o $(TESTOFILES) obj/util/benchmark.o
 	$(CC) -o $@ obj/re2/testing/regexp_benchmark.o $(TESTOFILES) obj/util/benchmark.o obj/libre2.a $(LDFLAGS) $(LDPCRE)
 
 ifdef REBUILD_TABLES

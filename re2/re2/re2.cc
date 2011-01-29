@@ -11,7 +11,6 @@
 
 #include <stdio.h>
 #include <string>
-#include <pthread.h>
 #include <errno.h>
 #include "util/util.h"
 #include "util/flags.h"
