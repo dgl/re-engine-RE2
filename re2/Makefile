@@ -164,7 +164,13 @@ obj/re2: obj
 obj/util: obj
 	cd obj && mkdir util || echo Okay
 
-obj/%.o: obj/re2 obj/util %.cc $(HFILES)
+obj/test: obj
+	cd obj && mkdir test || echo Okay
+
+obj/re2/testing: obj/re2
+	cd obj/re2 && mkdir testing || echo Okay
+
+obj/%.o: obj/re2 obj/re2/testing obj/util %.cc $(HFILES)
 	$(CC) -o $@ $(CXXFLAGS) $(RE2_CXXFLAGS) -DNDEBUG $*.cc
 
 obj/dbg/%.o: obj/dbg %.cc $(HFILES)
