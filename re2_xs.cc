@@ -8,6 +8,8 @@
 #define RegSV(p) (p)
 #endif
 
+unsigned re2_max_mem = 0;
+
 namespace {
     REGEXP * RE2_comp(pTHX_
 // Constness differs on different versions of Perl
@@ -90,14 +92,16 @@ RE2_comp(pTHX_
     /* The pattern is not UTF-8. Tell RE2 to treat it as Latin1. */
 #ifdef RXf_UTF8
     if (!(flags & RXf_UTF8))
-        options.set_encoding(RE2::Options::EncodingLatin1);
 #else
     if (!SvUTF8(pattern))
-        options.set_encoding(RE2::Options::EncodingLatin1);
 #endif
+        options.set_encoding(RE2::Options::EncodingLatin1);
 
     // XXX: Probably should allow control of this somehow
     options.set_log_errors(false);
+
+    if (re2_max_mem)
+      options.set_max_mem(re2_max_mem);
 
     // Try and compile first, if this fails we will fallback to Perl regex via
     // Perl_re_compile.

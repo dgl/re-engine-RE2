@@ -123,6 +123,7 @@ t/05.url.t
 t/06.matchrange.t
 t/07.utf8.t
 t/08.pos.t
+t/09.mem.t
 t/ree-pcre/capture.t
 t/ree-pcre/import.t
 t/ree-pcre/match.t
