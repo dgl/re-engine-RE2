@@ -75,7 +75,7 @@ regular expression (i.e. a C<qr//>).
 =item * C<possible_match_range([length = 10])>
 
 Returns an array of two strings: where the expression will start matching and
-just after where it will finish matching. See RE2's documention on
+just after where it will finish matching. See RE2's documentation on
 PossibleMatchRange for further details.
 
 Example:

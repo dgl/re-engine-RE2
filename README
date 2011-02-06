@@ -30,7 +30,7 @@ METHODS
 
         Returns an array of two strings: where the expression will start
         matching and just after where it will finish matching. See RE2's
-        documention on PossibleMatchRange for further details.
+        documentation on PossibleMatchRange for further details.
 
         Example:
 
