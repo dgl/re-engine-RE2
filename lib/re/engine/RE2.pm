@@ -53,11 +53,17 @@ re::engine::RE2 - RE2 regex engine
 
 =head1 DESCRIPTION
 
-Replaces / arguments perl's regex engine in a given lexical scope with RE2.
+This module replaces perl's regex engine in a given lexical scope with RE2.
 
-Rather under development, this is just to show it's possible!
+RE2 is a primarily DFA based regexp engine from Google that is very fast at
+matching large amounts of text. However it does not support look behind and
+some other Perl regular expression features. See
+L<http://code.google.com/p/re2|RE2's website> for more information.
 
-See L<http://github.com/dgl/re-engine-RE2>
+Fallback to normal Perl regexp is implemented by this module. If RE2 is unable
+to compile a regexp it will use Perl instead, therefore features not
+implemented by RE2 don't suddenly stop working, they will just use Perl's
+regexp implementation.
 
 =head1 METHODS
 
@@ -79,6 +85,101 @@ Example:
     is $max, 'c';'
 
 =back
+
+=head1 PERFORMANCE
+
+Performance is really the primary reason for using RE2, so here's some
+benchmarks. Like any benchmark take them with a pinch of salt.
+
+=head2 Simple matching
+
+  my $foo = "foo bar baz";
+  $foo =~ /foo/;
+  $foo =~ /foox/;
+
+On this very simple match RE2 is actually slower:
+
+           Rate  re2   re
+  re2  674634/s   -- -76%
+  re  2765739/s 310%   --
+
+=head2 URL matching
+
+Matching C<m{([a-zA-Z][a-zA-Z0-9]*)://([^ /]+)(/[^ ]*)?|([^ @]+)@([^
+@]+)}> against a several KB file:
+
+        Rate    re   re2
+  re  35.2/s    --  -99%
+  re2 2511/s 7037%    --
+
+=head2 Many alternatives
+
+Matching a string against a regexp with 17,576 alternatives (C<aaa .. zzz>).
+
+This uses trie matching on Perl (obviously RE2 does similar by default).
+
+  $ perl misc/altern.pl
+          Rate   re  re2
+  re   52631/s   -- -91%
+  re2 554938/s 954%   --
+
+=head1 NOTES
+
+=item * No support for C<m//x>
+
+The C</x> modifier is not supported. (There's no particular reason for this,
+just RE2 itself doesn't support it). Fallback to Perl regexp will happen
+automatically if C<//x> is used.
+
+=item * "re2/dfa.cc:447: DFA out of memory: prog size xxx mem yyy"
+
+If you attempt to compile a really large regular expression you may get this
+error. RE2 has an internal limit on memory consumption for the DFA state
+tables. By default this is 8 MiB.
+
+If you need to increase this size then use the max_mem parameter:
+
+  use re::engine::RE2 -max_mem => 8<<23; # 64MiB
+
+=item * How do I tell if RE2 will be used?
+
+See if your regexp is matching quickly or slowly ;).
+
+Alternatively normal OO concepts apply and you may examine the object returned
+by C<qr//>:
+
+  use re::engine::RE2;
+
+  ok qr/foo/->isa("re::engine::RE2");
+
+  # Perl Regexp used instead
+  ok not qr/(?<=foo)bar/->isa("re::engine::RE2");
+
+=head1 BUGS
+
+Known issues:
+
+=over 4
+
+=item * Unicode handling
+
+Currently the Unicode handling of re::engine::RE2 does not fully match Perl's
+behaviour.
+
+The UTF-8 flag of the regexp currently determines how the string is matched.
+This is obviously broken, so will be fixed at some point.
+
+=item * Final newline matching differs to Perl
+
+  "\n" =~ /$/
+
+The above is true in Perl, false in RE2. To work around the issue you can write
+C<\n?\z> when you mean Perl's C<$>.
+
+=back
+
+Please report bugs via RT in the normal way. (Or a patch at
+L<https://github.com/dgl/re-engine-RE2> would be most welcome.)
 
 =head1 AUTHORS
 
