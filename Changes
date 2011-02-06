@@ -1,3 +1,7 @@
+0.05 2011-02-06
+- Allow setting of RE2's max_mem to control memory bound
+- Improve documentation
+
 0.04 2011-01-29
 - Remove various UNIXisms from RE2, now builds under Win32/Strawberry
   (still needs gmake installed, which comes with Strawberry)

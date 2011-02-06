@@ -2,7 +2,7 @@ package re::engine::RE2;
 use 5.010;
 
 BEGIN {
-  $re::engine::RE2::VERSION = "0.04";
+  $re::engine::RE2::VERSION = "0.05";
 }
 
 use XSLoader ();
@@ -125,6 +125,8 @@ This uses trie matching on Perl (obviously RE2 does similar by default).
 
 =head1 NOTES
 
+=over 4
+
 =item * No support for C<m//x>
 
 The C</x> modifier is not supported. (There's no particular reason for this,
@@ -154,6 +156,8 @@ by C<qr//>:
 
   # Perl Regexp used instead
   ok not qr/(?<=foo)bar/->isa("re::engine::RE2");
+
+=back
 
 =head1 BUGS
 
