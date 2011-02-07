@@ -203,4 +203,7 @@ E<lt>cpan@audreyt.orgE<gt> and Yves Orton.
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
+(However the bundled copy of RE2 has a different copyright owner and is under a
+BSD-like license, see F<re2/LICENSE>.)
+
 =cut
