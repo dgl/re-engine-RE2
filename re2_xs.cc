@@ -134,7 +134,6 @@ RE2_comp(pTHX_
     sv_2mortal(wrapped_unset);
 
     sv_catpvn(flags & RXf_PMf_FOLD ? wrapped : wrapped_unset, "i", 1);
-    sv_catpvn(flags & RXf_PMf_EXTENDED ? wrapped : wrapped_unset, "x", 1);
     sv_catpvn(flags & RXf_PMf_MULTILINE ? wrapped : wrapped_unset, "m", 1);
 
     if (SvCUR(wrapped_unset)) {
