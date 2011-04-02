@@ -37,6 +37,7 @@
 .*\.c$
 .*\.bs$
 .*\.gz$
+.*\.tar$
 
 .*\.so$
 MYMETA.yml

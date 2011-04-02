@@ -113,6 +113,7 @@ re2/util/valgrind.cc
 re2/util/valgrind.h
 re2_xs.cc
 re2_xs.h
+README
 t/00.compile.t
 t/00.re2-tests.t
 t/01.basic.t
@@ -133,3 +134,4 @@ t/ree-pcre/split-null.t
 t/ree-pcre/split.t
 t/ree-pcre/subexp.t
 t/ree-pcre/unimport.t
+TODO

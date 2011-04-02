@@ -1,0 +1,10 @@
+# -*- mode: org -*-
+
+* Support RE2::Set functionality
+  i.e. a Regexp::RE2::Set class that can have RE2 regexps added into it
+  then either a match method or maybe overload ~~?
+* Improve tests
+** See if t/re/re_tests from Perl can be used.
+** Improve performance comparisons
+   See maybe https://github.com/axiak/pyre2/blob/master/tests/performance.py
+* Make -max_mem properly scoped as a pragma should be
