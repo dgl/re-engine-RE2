@@ -1,3 +1,7 @@
+0.06 2011-04-02
+- RT #67153: Fix interpolation of RE2 into RE2
+  (qr// stringification included the x flag which RE2 doesn't support)
+
 0.05 2011-02-06
 - Allow setting of RE2's max_mem to control memory bound
 - Improve documentation
