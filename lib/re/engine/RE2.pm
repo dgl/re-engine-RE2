@@ -39,6 +39,8 @@ sub unimport
 
 __END__
 
+=encoding utf8
+
 =head1 NAME
 
 re::engine::RE2 - RE2 regex engine
