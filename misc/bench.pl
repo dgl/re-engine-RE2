@@ -15,6 +15,11 @@ my $re_prere2;
 }
 
 cmpthese(-1, {
+  Oniguruma => sub {
+    use re::engine::Oniguruma;
+
+    $foo =~ m{([a-zA-Z][a-zA-Z0-9]*)://([^ /]+)(/[^ ]*)?|([^ @]+)@([^ @]+)};
+  },
   re2 => sub {
     use re::engine::RE2;
 

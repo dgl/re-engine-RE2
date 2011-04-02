@@ -22,6 +22,11 @@ cmpthese(undef, {
   },
   re => sub {
     "foo" =~ /$a/
+  },
+  Oniguruma => sub {
+    use re::engine::Oniguruma;
+    my $b = "$a";
+    "foo" =~ /$b/o;
   }
 });
 

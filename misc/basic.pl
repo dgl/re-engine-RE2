@@ -12,6 +12,11 @@ cmpthese(-1, {
   re => sub {
     $foo =~ /foo/;
     $foo =~ /foox/;
+  },
+  Oniguruma => sub {
+    use re::engine::Oniguruma;
+    $foo =~ /foo/;
+    $foo =~ /foox/;
   }
 });
 
