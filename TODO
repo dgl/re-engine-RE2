@@ -1,5 +1,13 @@
 # -*- mode: org -*-
 
+* Make /s modifier work (RT #67192)
+  As I mention in the ticket if this is done by passing the stringified form
+  into RE2 we stop needing the forked version of RE2 due to the /m issue too.
+* Fix UTF-8 support
+* '-strict' mode (no fallback to Perl RE)
+** Need to log errors correctly if in strict mode (i.e. as exceptions)
+* Support more options
+** never_nl could be useful for cpangrep optimisations
 * Support RE2::Set functionality
   i.e. a Regexp::RE2::Set class that can have RE2 regexps added into it
   then either a match method or maybe overload ~~?
