@@ -117,7 +117,7 @@ class StringPiece {
   typedef const char& reference;
   typedef const char& const_reference;
   typedef size_t size_type;
-  typedef ptrdiff_t difference_type;
+  typedef std::ptrdiff_t difference_type;
   static const size_type npos;
   typedef const char* const_iterator;
   typedef const char* iterator;
