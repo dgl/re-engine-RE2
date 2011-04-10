@@ -32,8 +32,8 @@ my %opt = (
 # If the user didn't explicitly provide optimisation settings, we'll try to do
 # it ourselves, but only for gcc.
 
-my $cc = (map /^CC=(.*)/ ? $1 : (), @ARGV)[0] || $Config{cc};
-if(!grep(/^OPTIMIZE=/, @ARGV)
+my $cc = (map +(/^CC=(.*)/i), @ARGV)[0] || $Config{cc};
+if(!grep(/^OPTIMIZE=/i, @ARGV)
     and my $gcc_version = gcc_version($cc)) {
   say "Compiling on gcc $gcc_version";
   my $optimize = $Config{optimize};
