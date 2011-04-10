@@ -1,4 +1,5 @@
 #include "re2_xs.h"
+#include "ppport.h"
 
 MODULE = re::engine::RE2 PACKAGE = re::engine::RE2
 PROTOTYPES: ENABLE
@@ -23,8 +24,8 @@ PPCODE:
 
         RE2_possible_match_range(rx, len, &possible_min, &possible_max);
 
-        XPUSHs(possible_min);
-        XPUSHs(possible_max);
+        mXPUSHs(possible_min);
+        mXPUSHs(possible_max);
 
 void
 set_max_mem(int mem)
