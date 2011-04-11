@@ -1,3 +1,9 @@
+0.07 2011-04-11
+- RT #67192: Fix /s support
+- Attempt to compile with -O3 as RE2 does
+- Fix leak in possible_match_range
+- Fix compilation on gcc 4.6 (RE2 issue 35)
+
 0.06 2011-04-02
 - RT #67153: Fix interpolation of RE2 into RE2
   (qr// stringification included the x flag which RE2 doesn't support)

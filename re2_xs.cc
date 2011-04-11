@@ -121,7 +121,7 @@ RE2_comp(pTHX_
     options.set_log_errors(false);
 
     if (re2_max_mem)
-      options.set_max_mem(re2_max_mem);
+        options.set_max_mem(re2_max_mem);
 
     // Try and compile first, if this fails we will fallback to Perl regex via
     // Perl_re_compile.
