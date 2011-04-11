@@ -30,7 +30,9 @@ namespace {
     void *   RE2_dupe(pTHX_ REGEXP * const, CLONE_PARAMS *);
 #endif
 
-    static SV * stringify(pTHX_ const U32 flags, const char *const exp, STRLEN plen) {
+    static SV * stringify(pTHX_ const U32 flags, const char *const exp,
+          const STRLEN plen)
+    {
         SV * wrapped = newSVpvn("(?", 2), * wrapped_unset = newSVpvn("", 0);
         sv_2mortal(wrapped);
         sv_2mortal(wrapped_unset);
@@ -78,10 +80,8 @@ RE2_comp(pTHX_
 #endif
         SV * const pattern, const U32 flags)
 {
-    REGEXP *rx_sv;
-
-    STRLEN plen;
-    char  *exp = SvPV((SV*)pattern, plen);
+    const char *const exp = SvPVX(pattern);
+    const STRLEN plen = SvCUR(pattern);
     U32 extflags = flags;
 
     RE2::Options options;
@@ -125,7 +125,7 @@ RE2_comp(pTHX_
 
     // Try and compile first, if this fails we will fallback to Perl regex via
     // Perl_re_compile.
-    SV * wrapped = stringify(aTHX_ flags, exp, plen);
+    const SV *const wrapped = stringify(aTHX_ flags, exp, plen);
     RE2 * ri = NULL;
 
     if (!perl_only) {
@@ -138,13 +138,14 @@ RE2_comp(pTHX_
         return Perl_re_compile(aTHX_ pattern, flags);
     }
 
+    REGEXP *rx_sv;
 #if PERL_VERSION > 10
     rx_sv = (REGEXP*) newSV_type(SVt_REGEXP);
 #else
     Newxz(rx_sv, 1, REGEXP);
     rx_sv->refcnt = 1;
 #endif
-    regexp * rx = RegSV(rx_sv);
+    regexp *const rx = RegSV(rx_sv);
 
     rx->extflags = extflags;
     rx->engine   = &re2_engine;
@@ -275,7 +276,7 @@ RE2_package(pTHX_ REGEXP * const rx)
 // Unnamespaced
 extern "C" void RE2_possible_match_range(pTHX_ REGEXP* rx, STRLEN len, SV** min_sv, SV** max_sv)
 {
-    RE2* re2 = (RE2*) RegSV(rx)->pprivate;
+    const RE2 *const re2 = (RE2*) RegSV(rx)->pprivate;
     std::string min, max;
 
     re2->PossibleMatchRange(&min, &max, (int)len);
