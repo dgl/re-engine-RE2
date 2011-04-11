@@ -27,6 +27,26 @@ namespace {
 #ifdef USE_ITHREADS
     void *   RE2_dupe(pTHX_ REGEXP * const, CLONE_PARAMS *);
 #endif
+
+    static SV * stringify(const U32 flags, const char *const exp, STRLEN plen) {
+        SV * wrapped = newSVpvn("(?", 2), * wrapped_unset = newSVpvn("", 0);
+        sv_2mortal(wrapped);
+        sv_2mortal(wrapped_unset);
+
+        sv_catpvn(flags & RXf_PMf_FOLD ? wrapped : wrapped_unset, "i", 1);
+        sv_catpvn(flags & RXf_PMf_MULTILINE ? wrapped : wrapped_unset, "m", 1);
+
+        if (SvCUR(wrapped_unset)) {
+            sv_catpvn(wrapped, "-", 1);
+            sv_catsv(wrapped, wrapped_unset);
+        }
+
+        sv_catpvn(wrapped, ":", 1);
+        sv_catpvn(wrapped, exp, plen);
+        sv_catpvn(wrapped, ")", 1);
+
+        return wrapped;
+    }
 };
 
 const regexp_engine re2_engine = {
@@ -85,8 +105,6 @@ RE2_comp(pTHX_
 
     options.set_case_sensitive(!(flags & RXf_PMf_FOLD)); /* /i */
     options.set_one_line(!(flags & RXf_PMf_MULTILINE)); /* not /m */
-    /* XXX: handle /s (needs RE2 changes to expose interface, don't really want
-       to get into prepending (?s) modifiers to the regexp itself. */
 
     // XXX: Need to compile two versions?
     /* The pattern is not UTF-8. Tell RE2 to treat it as Latin1. */
@@ -128,26 +146,11 @@ RE2_comp(pTHX_
     rx->extflags = extflags;
     rx->engine   = &re2_engine;
 
-    /* qr// stringification */
-    SV * wrapped = newSVpvn("(?", 2), * wrapped_unset = newSVpvn("", 0);
-    sv_2mortal(wrapped);
-    sv_2mortal(wrapped_unset);
+    SV * wrapped = stringify(flags, exp, plen);
 
-    sv_catpvn(flags & RXf_PMf_FOLD ? wrapped : wrapped_unset, "i", 1);
-    sv_catpvn(flags & RXf_PMf_MULTILINE ? wrapped : wrapped_unset, "m", 1);
-
-    if (SvCUR(wrapped_unset)) {
-      sv_catpvn(wrapped, "-", 1);
-      sv_catsv(wrapped, wrapped_unset);
-    }
-
-    sv_catpvn(wrapped, ":", 1);
-#if PERL_VERSION > 10
-    rx->pre_prefix = SvCUR(wrapped);
+#if PERL_VERSION >= 11
+    rx->pre_prefix = SvCUR(wrapped) - plen - 1;
 #endif
-
-    sv_catpvn(wrapped, exp, plen);
-    sv_catpvn(wrapped, ")", 1);
 
 #if PERL_VERSION == 10
     rx->wraplen = SvCUR(wrapped);
@@ -189,7 +192,6 @@ RE2_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
 
     re2::StringPiece res[re->nparens + 1];
 
-//#define RE2_DEBUG
 #ifdef RE2_DEBUG
     Perl_warner(aTHX_ packWARN(WARN_MISC), "RE2: Matching '%s' (%p, %p) against '%s'", stringarg, strbeg, stringarg, RX_WRAPPED(rx));
 #endif
