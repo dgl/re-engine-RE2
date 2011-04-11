@@ -1,6 +1,12 @@
 use Test::More;
 no warnings;
 
+# Avoid running for everyone, these tests are quite slow, but useful for CPAN
+# testers to run. cpanminus sets automated testing when it isn't, so ignore
+# in that case too.
+plan skip_all => "Only for automated tests"
+  unless $ENV{AUTOMATED_TESTING} and not $ENV{PERL5_CPANM_IS_RUNNING};
+
 my $make = $ENV{MAKE} || "make";
 
 my @results = qx{$make re2-tests};
