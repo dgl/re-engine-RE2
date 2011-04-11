@@ -123,10 +123,11 @@ RE2_comp(pTHX_
 
     // Try and compile first, if this fails we will fallback to Perl regex via
     // Perl_re_compile.
+    SV * wrapped = stringify(flags, exp, plen);
     RE2 * ri = NULL;
 
     if (!perl_only) {
-        ri = new RE2 (re2::StringPiece(exp, plen), options);
+        ri = new RE2 (re2::StringPiece(SvPVX(wrapped), SvCUR(wrapped)), options);
     }
 
     if (perl_only || ri->error_code()) {
@@ -145,8 +146,6 @@ RE2_comp(pTHX_
 
     rx->extflags = extflags;
     rx->engine   = &re2_engine;
-
-    SV * wrapped = stringify(flags, exp, plen);
 
 #if PERL_VERSION >= 11
     rx->pre_prefix = SvCUR(wrapped) - plen - 1;
