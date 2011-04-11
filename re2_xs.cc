@@ -35,6 +35,7 @@ namespace {
 
         sv_catpvn(flags & RXf_PMf_FOLD ? wrapped : wrapped_unset, "i", 1);
         sv_catpvn(flags & RXf_PMf_MULTILINE ? wrapped : wrapped_unset, "m", 1);
+        sv_catpvn(flags & RXf_PMf_SINGLELINE ? wrapped : wrapped_unset, "s", 1);
 
         if (SvCUR(wrapped_unset)) {
             sv_catpvn(wrapped, "-", 1);
@@ -104,7 +105,6 @@ RE2_comp(pTHX_
         perl_only = true;  /* /x */
 
     options.set_case_sensitive(!(flags & RXf_PMf_FOLD)); /* /i */
-    options.set_one_line(!(flags & RXf_PMf_MULTILINE)); /* not /m */
 
     // XXX: Need to compile two versions?
     /* The pattern is not UTF-8. Tell RE2 to treat it as Latin1. */
