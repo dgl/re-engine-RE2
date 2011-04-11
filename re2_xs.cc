@@ -1,3 +1,5 @@
+#define PERL_NO_GET_CONTEXT
+
 // This needs to be first, Perl is rude and defines macros like "Copy"
 #include <re2/re2.h>
 #include "re2_xs.h"
@@ -28,7 +30,7 @@ namespace {
     void *   RE2_dupe(pTHX_ REGEXP * const, CLONE_PARAMS *);
 #endif
 
-    static SV * stringify(const U32 flags, const char *const exp, STRLEN plen) {
+    static SV * stringify(pTHX_ const U32 flags, const char *const exp, STRLEN plen) {
         SV * wrapped = newSVpvn("(?", 2), * wrapped_unset = newSVpvn("", 0);
         sv_2mortal(wrapped);
         sv_2mortal(wrapped_unset);
@@ -123,7 +125,7 @@ RE2_comp(pTHX_
 
     // Try and compile first, if this fails we will fallback to Perl regex via
     // Perl_re_compile.
-    SV * wrapped = stringify(flags, exp, plen);
+    SV * wrapped = stringify(aTHX_ flags, exp, plen);
     RE2 * ri = NULL;
 
     if (!perl_only) {
@@ -271,7 +273,7 @@ RE2_package(pTHX_ REGEXP * const rx)
 };
 
 // Unnamespaced
-extern "C" void RE2_possible_match_range(REGEXP* rx, STRLEN len, SV** min_sv, SV** max_sv)
+extern "C" void RE2_possible_match_range(pTHX_ REGEXP* rx, STRLEN len, SV** min_sv, SV** max_sv)
 {
     RE2* re2 = (RE2*) RegSV(rx)->pprivate;
     std::string min, max;

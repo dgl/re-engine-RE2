@@ -22,7 +22,7 @@ PPCODE:
                 croak("qr// reference to a re::engine::RE2 instance required");
         rx = SvRX(self);
 
-        RE2_possible_match_range(rx, len, &possible_min, &possible_max);
+        RE2_possible_match_range(aTHX_ rx, len, &possible_min, &possible_max);
 
         mXPUSHs(possible_min);
         mXPUSHs(possible_max);
