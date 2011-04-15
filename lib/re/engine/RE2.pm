@@ -24,7 +24,7 @@ sub import
     if (@_) {
         my %args = @_;
         if (exists $args{"-max_mem"}) {
-            re::engine::RE2::set_max_mem($args{"-max_mem"});
+            $^H{__PACKAGE__ . "::max-mem"} = $args{"-max_mem"};
         }
     }
 }

@@ -10,8 +10,6 @@
 #define RegSV(p) (p)
 #endif
 
-unsigned re2_max_mem = 0;
-
 namespace {
     REGEXP * RE2_comp(pTHX_
 // Constness differs on different versions of Perl
@@ -120,8 +118,10 @@ RE2_comp(pTHX_
     // XXX: Probably should allow control of this somehow
     options.set_log_errors(false);
 
-    if (re2_max_mem)
-        options.set_max_mem(re2_max_mem);
+    SV * max_mem = cophh_fetch_pvs(PL_curcop->cop_hints_hash, "re::engine::RE2::max-mem", 0);
+    if (SvOK(max_mem) && SvIV(max_mem)) {
+        options.set_max_mem(SvIV(max_mem));
+    }
 
     // Try and compile first, if this fails we will fallback to Perl regex via
     // Perl_re_compile.

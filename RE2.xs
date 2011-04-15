@@ -26,9 +26,3 @@ PPCODE:
 
         mXPUSHs(possible_min);
         mXPUSHs(possible_max);
-
-void
-set_max_mem(int mem)
-PROTOTYPE: $
-PPCODE:
-	re2_max_mem = mem;

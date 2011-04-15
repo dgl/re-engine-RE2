@@ -37,6 +37,5 @@
 ** See if t/re/re_tests from Perl can be used.
 ** Improve performance comparisons
    See maybe https://github.com/axiak/pyre2/blob/master/tests/performance.py
-* Make -max_mem properly scoped as a pragma should be
 * Support named groups
 * Support /x (probably needs RE2 changes to do properly)
