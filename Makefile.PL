@@ -29,7 +29,7 @@ my %opt = (
   $guess->makemaker_options
 );
 
-if($ExtUtils::MakeMaker::VERSION >= 6.46) {
+if(eval { ExtUtils::MakeMaker->VERSION(6.46) }) {
   $opt{META_MERGE} = {
     resources => {
       repository => 'https://github.com/dgl/re-engine-RE2'
