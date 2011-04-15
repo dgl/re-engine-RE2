@@ -3,6 +3,7 @@
 // This needs to be first, Perl is rude and defines macros like "Copy"
 #include <re2/re2.h>
 #include "re2_xs.h"
+#include "compat-cophh.h"
 
 #if PERL_VERSION > 10
 #define RegSV(p) SvANY(p)
