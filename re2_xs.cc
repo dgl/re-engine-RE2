@@ -119,8 +119,9 @@ RE2_comp(pTHX_
     // XXX: Probably should allow control of this somehow
     options.set_log_errors(false);
 
-    SV * max_mem = cophh_fetch_pvs(PL_curcop->cop_hints_hash, "re::engine::RE2::max-mem", 0);
-    if (SvOK(max_mem) && SvIV(max_mem)) {
+    SV *const max_mem = cophh_fetch_pvs(PL_curcop->cop_hints_hash,
+            "re::engine::RE2::max-mem", 0);
+    if (SvOK(max_mem) && SvIV_nomg(max_mem)) {
         options.set_max_mem(SvIV(max_mem));
     }
 
@@ -134,8 +135,23 @@ RE2_comp(pTHX_
     }
 
     if (perl_only || ri->error_code()) {
-        // Failed => fallback. Perl will print errors for us.
+        // Failed. Are we in strict RE2 only mode?
+        SV *const re2_strict = cophh_fetch_pvs(PL_curcop->cop_hints_hash,
+                "re::engine::RE2::strict", 0);
+
+        if (SvOK(re2_strict) && SvTRUE_nomg(re2_strict)) {
+            std::string error = ri->error();
+            delete ri;
+
+            croak(perl_only
+                    ? "/x is not supported by RE2"
+                    : error.c_str());
+            return NULL; // unreachable
+        }
+
         delete ri;
+
+        // Fallback. Perl will either compile or print errors for us.
         return Perl_re_compile(aTHX_ pattern, flags);
     }
 

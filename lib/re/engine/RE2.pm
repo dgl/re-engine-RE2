@@ -26,6 +26,10 @@ sub import
         if (exists $args{"-max_mem"}) {
             $^H{__PACKAGE__ . "::max-mem"} = $args{"-max_mem"};
         }
+
+        if (exists $args{"-strict"}) {
+            $^H{__PACKAGE__ . "::strict"} = $args{"-strict"};
+        }
     }
 }
 
