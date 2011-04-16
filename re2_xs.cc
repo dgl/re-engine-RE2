@@ -139,7 +139,7 @@ RE2_comp(pTHX_
         SV *const re2_strict = cophh_fetch_pvs(PL_curcop->cop_hints_hash,
                 "re::engine::RE2::strict", 0);
 
-        if (SvOK(re2_strict) && SvTRUE_nomg(re2_strict)) {
+        if (SvOK(re2_strict) && SvTRUE(re2_strict)) {
             const std::string error = ri->error();
             delete ri;
 
