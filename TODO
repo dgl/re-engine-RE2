@@ -26,8 +26,6 @@
   once UTF-8 is working to some extent.  An alternative could be to
   make things explicit (e.g. you need to say "no feature
   'unicode_strings'" if you happen to have enabled them to use RE2).
-* '-strict' mode (no fallback to Perl RE)
-** Need to log errors correctly if in strict mode (i.e. as exceptions)
 * Support more options
 ** never_nl could be useful for cpangrep optimisations
 * Support RE2::Set functionality

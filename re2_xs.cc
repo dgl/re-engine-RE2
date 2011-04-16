@@ -140,7 +140,7 @@ RE2_comp(pTHX_
                 "re::engine::RE2::strict", 0);
 
         if (SvOK(re2_strict) && SvTRUE_nomg(re2_strict)) {
-            std::string error = ri->error();
+            const std::string error = ri->error();
             delete ri;
 
             croak(perl_only

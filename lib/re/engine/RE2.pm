@@ -92,6 +92,23 @@ Example:
 
 =back
 
+=head1 PRAGMA OPTIONS
+
+Various options can be set by providing options to the C<use> line. These will
+be pragma scoped.
+
+=over 4
+
+=item * C<< -max_mem => 1<<24 >>
+
+Configure RE2's memory limit.
+
+=item * C<< -strict => 1 >>
+
+Be strict, i.e. don't allow regexps that are not supported by RE2.
+
+=back
+
 =head1 PERFORMANCE
 
 Performance is really the primary reason for using RE2, so here's some
@@ -162,6 +179,8 @@ by C<qr//>:
 
   # Perl Regexp used instead
   ok not qr/(?<=foo)bar/->isa("re::engine::RE2");
+
+If you wish to force RE2, use the C<-strict> option.
 
 =back
 
