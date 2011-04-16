@@ -1,3 +1,7 @@
+0.07_01 2011-04-16
+- Use cophh API
+- Support -strict mode
+
 0.07 2011-04-11
 - RT #67192: Fix /s support
 - Attempt to compile with -O3 as RE2 does
