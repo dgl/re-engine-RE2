@@ -1,4 +1,5 @@
 Changes
+compat-cophh.h
 lib/re/engine/RE2.pm
 Makefile.PL
 MANIFEST			This list of files
@@ -126,6 +127,7 @@ t/06.matchrange.t
 t/07.utf8.t
 t/08.pos.t
 t/09.mem.t
+t/10.strict.t
 t/ree-pcre/capture.t
 t/ree-pcre/import.t
 t/ree-pcre/match.t
