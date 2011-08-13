@@ -7,4 +7,3 @@ EXTERN_C const regexp_engine re2_engine;
 EXTERN_C void RE2_possible_match_range(pTHX_ REGEXP* rx, STRLEN len, SV **possible_min, SV **possible_max);
 END_EXTERN_C
 
-extern unsigned re2_max_mem;
