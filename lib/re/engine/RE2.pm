@@ -30,6 +30,14 @@ sub import
         if (exists $args{"-strict"}) {
             $^H{__PACKAGE__ . "::strict"} = $args{"-strict"};
         }
+
+        if (exists $args{"-longest_match"}) {
+            $^H{__PACKAGE__ . "::longest-match"} = $args{"-longest_match"};
+        }
+
+        if (exists $args{"-never_nl"}) {
+            $^H{__PACKAGE__ . "::never-nl"} = $args{"-never_nl"};
+        }
     }
 }
 
@@ -106,6 +114,16 @@ Configure RE2's memory limit.
 =item * C<< -strict => 1 >>
 
 Be strict, i.e. don't allow regexps that are not supported by RE2.
+
+=item * C<< -longest_match => 1 >>
+
+Match on the longest match in alternations. For example with this option set
+matching C<"abc"> against C<(a|abc)> will match C<"abc">, without depending on
+order.
+
+=item * C<< -never_nl => 1 >>
+
+Never match a newline (C<"\n">) even if the provided regexp contains it.
 
 =back
 

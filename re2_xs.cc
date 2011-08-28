@@ -116,13 +116,24 @@ RE2_comp(pTHX_
 #endif
         options.set_encoding(RE2::Options::EncodingLatin1);
 
-    // XXX: Probably should allow control of this somehow
     options.set_log_errors(false);
 
     SV *const max_mem = cophh_fetch_pvs(PL_curcop->cop_hints_hash,
             "re::engine::RE2::max-mem", 0);
     if (SvOK(max_mem) && SvIV_nomg(max_mem)) {
         options.set_max_mem(SvIV(max_mem));
+    }
+
+    SV *const longest_match = cophh_fetch_pvs(PL_curcop->cop_hints_hash,
+            "re::engine::RE2::longest-match", 0);
+    if (SvOK(longest_match) && SvTRUE(longest_match)) {
+        options.set_longest_match(true);
+    }
+
+    SV *const never_nl = cophh_fetch_pvs(PL_curcop->cop_hints_hash,
+            "re::engine::RE2::never-nl", 0);
+    if (SvOK(never_nl) && SvTRUE(never_nl)) {
+        options.set_never_nl(true);
     }
 
     // Try and compile first, if this fails we will fallback to Perl regex via
