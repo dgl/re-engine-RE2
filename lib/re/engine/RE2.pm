@@ -72,7 +72,7 @@ This module replaces perl's regex engine in a given lexical scope with RE2.
 RE2 is a primarily DFA based regexp engine from Google that is very fast at
 matching large amounts of text. However it does not support look behind and
 some other Perl regular expression features. See
-L<http://code.google.com/p/re2|RE2's website> for more information.
+L<RE2's website|http://code.google.com/p/re2> for more information.
 
 Fallback to normal Perl regexp is implemented by this module. If RE2 is unable
 to compile a regexp it will use Perl instead, therefore features not
