@@ -68,9 +68,8 @@ if(defined $Config{usethreads} && $Config{usethreads} eq 'define') {
   if(defined $Config{i_pthread} && $Config{i_pthread} eq 'define') {
     $opt{DEFINE} = "-DHAVE_PTHREAD -pthread";
   } else {
-    # For now this allows compilation under Win32/Strawberry
-    # I'm not sure Perl needs thread safety from RE2 anyway as normally SVs
-    # aren't shared but they might be..., needs some thought.
+    # For now this allows compilation under Win32/Strawberry, but might cause weird crashes on thread
+    # destruction...
     $opt{DEFINE} = "-DNO_THREADS";
   }
 } else {
@@ -117,7 +116,7 @@ re2/obj/libre2.a: re2/Makefile
 	$MAKE -C re2 obj/libre2.a \$(RE2_FLAGS)
 
 re2-tests:
-	$MAKE -C re2 static-test \$(RE2_FLAGS)
- 
+	$MAKE -C re2 static-test \$(RE2_FLAGS) LDFLAGS="\$(OTHERLDFLAGS) \$(LDLOADLIBS) -lm -lpthread"
+
 MAKE_FRAG
 }
