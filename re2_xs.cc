@@ -4,6 +4,7 @@
 #include <re2/re2.h>
 #include "re2_xs.h"
 #include "compat-cophh.h"
+#include "compat-rx.h"
 
 #if PERL_VERSION > 10
 #define RegSV(p) SvANY(p)
@@ -178,23 +179,16 @@ RE2_comp(pTHX_
     rx->extflags = extflags;
     rx->engine   = &re2_engine;
 
-#if PERL_VERSION >= 11
+#if PERL_VERSION > 10
     rx->pre_prefix = SvCUR(wrapped) - plen - 1;
+#else
+    /* Preserve a copy of the original pattern */
+    rx->precomp = savepvn(exp, plen);
+    rx->prelen = (I32)plen;
 #endif
 
-#if PERL_VERSION == 10
-    rx->wraplen = SvCUR(wrapped);
-    rx->wrapped = savepvn(SvPVX(wrapped), SvCUR(wrapped));
-#else
     RX_WRAPPED(rx_sv) = savepvn(SvPVX(wrapped), SvCUR(wrapped));
     RX_WRAPLEN(rx_sv) = SvCUR(wrapped);
-#endif
-
-#if PERL_VERSION == 10
-    /* Preserve a copy of the original pattern */
-    rx->prelen = (I32)plen;
-    rx->precomp = savepvn(exp, plen);
-#endif
 
     /* Store our private object */
     rx->pprivate = (void *) ri;
@@ -285,11 +279,18 @@ RE2_free(pTHX_ REGEXP * const rx)
     delete (RE2 *) RegSV(rx)->pprivate;
 }
 
+// Perl polluting our namespace, again.
+#undef Copy
 void *
 RE2_dupe(pTHX_ REGEXP * const rx, CLONE_PARAMS *param)
 {
 	PERL_UNUSED_ARG(param);
-    return RegSV(rx)->pprivate;
+
+    RE2 *previous = (RE2*) RegSV(rx)->pprivate;
+    RE2::Options options;
+    options.Copy(previous->options());
+
+    return new RE2 (re2::StringPiece(RX_WRAPPED(rx), RX_WRAPLEN(rx)), options);
 }
 
 SV *
