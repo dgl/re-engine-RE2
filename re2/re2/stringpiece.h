@@ -20,6 +20,7 @@
 #define STRINGS_STRINGPIECE_H__
 
 #include <string.h>
+#include <cstddef>
 #include <iosfwd>
 #include <string>
 
@@ -117,7 +118,7 @@ class StringPiece {
   typedef const char& reference;
   typedef const char& const_reference;
   typedef size_t size_type;
-  typedef std::ptrdiff_t difference_type;
+  typedef ptrdiff_t difference_type;
   static const size_type npos;
   typedef const char* const_iterator;
   typedef const char* iterator;
@@ -143,33 +144,37 @@ class StringPiece {
   int rfind(char c, size_type pos = npos) const;
 
   StringPiece substr(size_type pos, size_type n = npos) const;
+  
+  static bool _equal(const StringPiece&, const StringPiece&);
 };
 
-}  // namespace re2
+inline bool operator==(const StringPiece& x, const StringPiece& y) {
+  return StringPiece::_equal(x, y);
+}
 
-bool operator==(const re2::StringPiece& x, const re2::StringPiece& y);
-
-inline bool operator!=(const re2::StringPiece& x, const re2::StringPiece& y) {
+inline bool operator!=(const StringPiece& x, const StringPiece& y) {
   return !(x == y);
 }
 
-inline bool operator<(const re2::StringPiece& x, const re2::StringPiece& y) {
+inline bool operator<(const StringPiece& x, const StringPiece& y) {
   const int r = memcmp(x.data(), y.data(),
                        std::min(x.size(), y.size()));
   return ((r < 0) || ((r == 0) && (x.size() < y.size())));
 }
 
-inline bool operator>(const re2::StringPiece& x, const re2::StringPiece& y) {
+inline bool operator>(const StringPiece& x, const StringPiece& y) {
   return y < x;
 }
 
-inline bool operator<=(const re2::StringPiece& x, const re2::StringPiece& y) {
+inline bool operator<=(const StringPiece& x, const StringPiece& y) {
   return !(x > y);
 }
 
-inline bool operator>=(const re2::StringPiece& x, const re2::StringPiece& y) {
+inline bool operator>=(const StringPiece& x, const StringPiece& y) {
   return !(x < y);
 }
+
+}  // namespace re2
 
 // allow StringPiece to be logged
 extern std::ostream& operator<<(std::ostream& o, const re2::StringPiece& piece);

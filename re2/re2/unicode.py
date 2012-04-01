@@ -9,7 +9,7 @@ import re
 import urllib2
 
 # Directory or URL where Unicode tables reside.
-_UNICODE_DIR = "http://www.unicode.org/Public/5.2.0/ucd"
+_UNICODE_DIR = "http://www.unicode.org/Public/6.0.0/ucd"
 
 # Largest valid Unicode code value.
 _RUNE_MAX = 0x10FFFF
@@ -247,7 +247,7 @@ def CaseGroups(unicode_dir=_UNICODE_DIR):
   for g in groups:
     g.sort()
   groups.sort()
-  return groups
+  return togroup, groups
 
 
 def Scripts(unicode_dir=_UNICODE_DIR):

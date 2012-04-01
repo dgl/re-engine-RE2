@@ -229,6 +229,7 @@ RE2_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
     bool ok = ri->Match(
             re2::StringPiece(strbeg, strend - strbeg),
             stringarg - strbeg,
+            strend - strbeg,
             RE2::UNANCHORED,
             res, sizeof res / sizeof *res);
 

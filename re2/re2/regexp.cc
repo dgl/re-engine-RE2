@@ -559,6 +559,46 @@ map<string, int>* Regexp::NamedCaptures() {
   return w.TakeMap();
 }
 
+// Walker class to build map from capture group indices to their names.
+class CaptureNamesWalker : public Regexp::Walker<Ignored> {
+ public:
+  CaptureNamesWalker() : map_(NULL) {}
+  ~CaptureNamesWalker() { delete map_; }
+
+  map<int, string>* TakeMap() {
+    map<int, string>* m = map_;
+    map_ = NULL;
+    return m;
+  }
+
+  Ignored PreVisit(Regexp* re, Ignored ignored, bool* stop) {
+    if (re->op() == kRegexpCapture && re->name() != NULL) {
+      // Allocate map once we find a name.
+      if (map_ == NULL)
+        map_ = new map<int, string>;
+
+      (*map_)[re->cap()] = *re->name();
+    }
+    return ignored;
+  }
+
+  virtual Ignored ShortVisit(Regexp* re, Ignored ignored) {
+    // Should never be called: we use Walk not WalkExponential.
+    LOG(DFATAL) << "CaptureNamesWalker::ShortVisit called";
+    return ignored;
+  }
+
+ private:
+  map<int, string>* map_;
+  DISALLOW_EVIL_CONSTRUCTORS(CaptureNamesWalker);
+};
+
+map<int, string>* Regexp::CaptureNames() {
+  CaptureNamesWalker w;
+  w.Walk(this, 0);
+  return w.TakeMap();
+}
+
 // Determines whether regexp matches must be anchored
 // with a fixed string prefix.  If so, returns the prefix and
 // the regexp that remains after the prefix.  The prefix might
@@ -574,58 +614,54 @@ bool Regexp::RequiredPrefix(string *prefix, bool *foldcase, Regexp** suffix) {
   if (op_ != kRegexpConcat)
     return false;
 
-  // Some number of anchors.
+  // Some number of anchors, then a literal or concatenation.
   int i = 0;
   Regexp** sub = this->sub();
   while (i < nsub_ && sub[i]->op_ == kRegexpBeginText)
     i++;
-  if (i == 0)
+  if (i == 0 || i >= nsub_)
     return false;
 
-  // Then a literal or a concatenation.
-  if (i < nsub_) {
-    Regexp* re = sub[i];
-    switch (re->op_) {
-      default:
-        return false;
+  Regexp* re = sub[i];
+  switch (re->op_) {
+    default:
+      return false;
 
-      case kRegexpLiteralString:
-        // Convert to string in proper encoding.
-        if (re->parse_flags() & Latin1) {
-          prefix->resize(re->nrunes_);
-          for (int j = 0; j < re->nrunes_; j++)
-            (*prefix)[j] = re->runes_[j];
-        } else {
-          // Convert to UTF-8 in place.
-          // Assume worst-case space and then trim.
-          prefix->resize(re->nrunes_ * UTFmax);
-          char *p = &(*prefix)[0];
-          for (int j = 0; j < re->nrunes_; j++) {
-            Rune r = re->runes_[j];
-            if (r < Runeself)
-              *p++ = r;
-            else
-              p += runetochar(p, &r);
-          }
-          prefix->resize(p - &(*prefix)[0]);
+    case kRegexpLiteralString:
+      // Convert to string in proper encoding.
+      if (re->parse_flags() & Latin1) {
+        prefix->resize(re->nrunes_);
+        for (int j = 0; j < re->nrunes_; j++)
+          (*prefix)[j] = re->runes_[j];
+      } else {
+        // Convert to UTF-8 in place.
+        // Assume worst-case space and then trim.
+        prefix->resize(re->nrunes_ * UTFmax);
+        char *p = &(*prefix)[0];
+        for (int j = 0; j < re->nrunes_; j++) {
+          Rune r = re->runes_[j];
+          if (r < Runeself)
+            *p++ = r;
+          else
+            p += runetochar(p, &r);
         }
-        break;
+        prefix->resize(p - &(*prefix)[0]);
+      }
+      break;
 
-      case kRegexpLiteral:
-        if ((re->parse_flags() & Latin1) || re->rune_ < Runeself) {
-          prefix->append(1, re->rune_);
-        } else {
-          char buf[UTFmax];
-          prefix->append(buf, runetochar(buf, &re->rune_));
-        }
-        break;
-    }
-    *foldcase = (sub[i]->parse_flags() & FoldCase);
-    i++;
+    case kRegexpLiteral:
+      if ((re->parse_flags() & Latin1) || re->rune_ < Runeself) {
+        prefix->append(1, re->rune_);
+      } else {
+        char buf[UTFmax];
+        prefix->append(buf, runetochar(buf, &re->rune_));
+      }
+      break;
   }
+  *foldcase = (sub[i]->parse_flags() & FoldCase);
+  i++;
 
   // The rest.
-  Regexp* re;
   if (i < nsub_) {
     for (int j = i; j < nsub_; j++)
       sub[j]->Incref();

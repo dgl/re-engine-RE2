@@ -17,6 +17,9 @@
 // some of the more complicated things thrown away.  In particular,
 // backreferences and generalized assertions are not available, nor is \Z.
 //
+// See http://code.google.com/p/re2/wiki/Syntax for the syntax
+// supported by RE2, and a comparison with PCRE and PERL regexps.
+//
 // For those not familiar with Perl's regular expressions,
 // here are some examples of the most commonly used extensions:
 //
@@ -349,14 +352,17 @@ class RE2 {
                       const RE2& pattern,
                       const StringPiece& rewrite);
 
-  // Like Replace(), except replaces all occurrences of the pattern in
-  // the string with the rewrite.  Replacements are not subject to
-  // re-matching.  E.g.,
+  // Like Replace(), except replaces successive non-overlapping occurrences
+  // of the pattern in the string with the rewrite. E.g.
   //
   //   string s = "yabba dabba doo";
   //   CHECK(RE2::GlobalReplace(&s, "b+", "d"));
   //
   // will leave "s" containing "yada dada doo"
+  // Replacements are not subject to re-matching.
+  //
+  // Because GlobalReplace only replaces non-overlapping matches,
+  // replacing "ana" within "banana" makes only one replacement, not two.
   //
   // Returns the number of replacements made.
   static int GlobalReplace(string *str,
@@ -412,12 +418,21 @@ class RE2 {
   // does not count: if the regexp is "(a)(b)", returns 2.
   int NumberOfCapturingGroups() const;
 
+
   // Return a map from names to capturing indices.
+  // The map records the index of the leftmost group
+  // with the given name.
   // Only valid until the re is deleted.
   const map<string, int>& NamedCapturingGroups() const;
 
+  // Return a map from capturing indices to names.
+  // The map has no entries for unnamed groups.
+  // Only valid until the re is deleted.
+  const map<int, string>& CapturingGroupNames() const;
+
   // General matching routine.
-  // Match against text starting at offset startpos.
+  // Match against text starting at offset startpos
+  // and stopping the search at offset endpos.
   // Returns true if match found, false if not.
   // On a successful match, fills in match[] (up to nmatch entries)
   // with information about submatches.
@@ -437,6 +452,7 @@ class RE2 {
   // either way, match[i] == NULL.
   bool Match(const StringPiece& text,
              int startpos,
+             int endpos,
              Anchor anchor,
              StringPiece *match,
              int nmatch) const;
@@ -465,12 +481,13 @@ class RE2 {
     //   never_nl         (false) never match \n, even if it is in regexp
     //   case_sensitive   (true)  match is case-sensitive (regexp can override
     //                              with (?i) unless in posix_syntax mode)
-    //   perl_classes     (false) allow Perl's \d \s \w \D \S \W when in
-    //                              posix_syntax mode
-    //   word_boundary    (false) allow \b \B (word boundary and not) when in
-    //                              posix_syntax mode
+    //
+    // The following options are only consulted when posix_syntax == true.
+    // (When posix_syntax == false these features are always enabled and
+    // cannot be turned off.)
+    //   perl_classes     (false) allow Perl's \d \s \w \D \S \W
+    //   word_boundary    (false) allow Perl's \b \B (word boundary and not)
     //   one_line         (false) ^ and $ only match beginning and end of text
-    //                              when in posix_syntax mode
     //
     // The max_mem option controls how much memory can be used
     // to hold the compiled form of the regexp (the Prog) and
@@ -685,6 +702,9 @@ class RE2 {
   // Map from capture names to indices
   mutable const map<string, int>* named_groups_;
 
+  // Map from capture indices to names
+  mutable const map<int, string>* group_names_;
+
   //DISALLOW_EVIL_CONSTRUCTORS(RE2);
   RE2(const RE2&);
   void operator=(const RE2&);
@@ -722,6 +742,7 @@ class RE2::Arg {
 
 
   MAKE_PARSER(char,               parse_char);
+  MAKE_PARSER(signed char,        parse_char);
   MAKE_PARSER(unsigned char,      parse_uchar);
   MAKE_PARSER(short,              parse_short);
   MAKE_PARSER(unsigned short,     parse_ushort);
