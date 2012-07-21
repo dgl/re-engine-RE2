@@ -2,6 +2,7 @@
 
 // This needs to be first, Perl is rude and defines macros like "Copy"
 #include <re2/re2.h>
+#include <map>
 #include "re2_xs.h"
 #include "compat-cophh.h"
 #include "compat-rx.h"
@@ -11,6 +12,9 @@
 #else
 #define RegSV(p) (p)
 #endif
+
+using std::map;
+using std::string;
 
 namespace {
     REGEXP * RE2_comp(pTHX_
@@ -152,7 +156,7 @@ RE2_comp(pTHX_
                 "re::engine::RE2::strict", 0);
 
         if (SvOK(re2_strict) && SvTRUE(re2_strict)) {
-            const std::string error = ri->error();
+            const string error = ri->error();
             delete ri;
 
             croak(perl_only
@@ -193,10 +197,26 @@ RE2_comp(pTHX_
     /* Store our private object */
     rx->pprivate = (void *) ri;
 
-#if 0
-    ri->NamedCapturingGroups();
     /* If named captures are defined make rx->paren_names */
-#endif
+    const map<string, int> ncg(ri->NamedCapturingGroups());
+    for(map<string, int>::const_iterator it = ncg.begin();
+          it != ncg.end();
+          ++it) {
+        // This block assumes RE2 won't give us multiple named captures of the
+        // same name -- it currently doesn't support this.
+        SV* value = newSV_type(SVt_PVNV);
+
+        SvIV_set(value, 1);
+        SvIOK_on(value);
+        I32 offsetp = it->second;
+        sv_setpvn(value, (char*)&offsetp, sizeof offsetp);
+
+        if (!RXp_PAREN_NAMES(rx)) {
+          RXp_PAREN_NAMES(rx) = newHV();
+        }
+
+        hv_store(RXp_PAREN_NAMES(rx), it->first.data(), it->first.size(), value, 0);
+    }
 
     rx->lastparen = rx->lastcloseparen = rx->nparens = ri->NumberOfCapturingGroups();
 
@@ -307,7 +327,7 @@ RE2_package(pTHX_ REGEXP * const rx)
 extern "C" void RE2_possible_match_range(pTHX_ REGEXP* rx, STRLEN len, SV** min_sv, SV** max_sv)
 {
     const RE2 *const re2 = (RE2*) RegSV(rx)->pprivate;
-    std::string min, max;
+    string min, max;
 
     re2->PossibleMatchRange(&min, &max, (int)len);
 
