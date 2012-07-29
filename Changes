@@ -1,3 +1,10 @@
+0.11 2012-07-29
+- Support named capture groups
+- Support perl >= 5.17.1; add a nulled out op_comp to engine struct
+
+0.10 2012-07-24
+- Add missing compat-rx.h file
+
 0.09 2012-04-01 (Brought to you from the 2012 QA Hackathon in Paris)
 - Thread destruction fixes
 
