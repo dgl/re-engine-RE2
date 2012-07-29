@@ -2,6 +2,7 @@ use strict;
 use Test::More tests => 5;
 use re::engine::RE2;
 
+# Not UTF-8 in RE2 => fallback to Perl RE.
 ok "\x{345}" =~ /\x{345}/;
 is($1, undef);
 
