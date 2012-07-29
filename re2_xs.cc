@@ -73,6 +73,9 @@ const regexp_engine re2_engine = {
 #if defined(USE_ITHREADS)
     RE2_dupe,
 #endif
+#if PERL_VERSION > 17 || (PERL_VERSION == 17 && PERL_SUBVERSION >= 1)
+    NULL,
+#endif
 };
 
 namespace {
