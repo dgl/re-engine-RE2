@@ -94,12 +94,14 @@ RE2_comp(pTHX_
 #endif
         SV * const pattern, const U32 flags)
 {
-    const char *const exp = SvPVX(pattern);
-    const STRLEN plen = SvCUR(pattern);
-    U32 extflags = flags;
-
+    const char *exp;
+    STRLEN plen;
     RE2::Options options;
+
+    U32 extflags = flags;
     bool perl_only = false;
+
+    exp = SvPV(pattern, plen);
 
     /* C<split " ">, bypass the engine alltogether and act as perl does */
     if (flags & RXf_SPLIT && plen == 1 && exp[0] == ' ')
