@@ -57,10 +57,16 @@ if(!grep(/^OPTIMIZE=/i, @ARGV)
     # Try to use this flag
     if(gcc_try(cc => $cc, %opt, OPTIMIZE => $try_optimize)) {
       $optimize = $try_optimize;
-      say "Added -flto to OPTIMIZE: $optimize";
+    }
+
+    # gcc 4.9 needs this otherwise it gets rid of nearly everything in libre2.a.
+    $try_optimize = "$optimize -ffat-lto-objects";
+    if(gcc_try(cc => $cc, %opt, OPTIMIZE => $try_optimize)) {
+      $optimize = $try_optimize;
     }
   }
 
+  say "OPTIMIZE is now: $optimize";
   $opt{OPTIMIZE} = $optimize;
 }
 
