@@ -30,10 +30,17 @@ namespace {
             const
 #endif
             SV * const, U32);
+#if PERL_VERSION >= 19
+    char *   RE2_intuit(pTHX_ REGEXP * const, SV *, const char *,
+                        char *, char *, U32, re_scream_pos_data *);
+    I32      RE2_exec(pTHX_ REGEXP * const, char *, char *,
+                      char *, SSize_t, SV *, void *, U32);
+#else
     I32      RE2_exec(pTHX_ REGEXP * const, char *, char *,
                       char *, I32, SV *, void *, U32);
     char *   RE2_intuit(pTHX_ REGEXP * const, SV *, char *,
                         char *, U32, re_scream_pos_data *);
+#endif
     SV *     RE2_checkstr(pTHX_ REGEXP * const);
     void     RE2_free(pTHX_ REGEXP * const);
     SV *     RE2_package(pTHX_ REGEXP * const);
@@ -245,10 +252,17 @@ RE2_comp(pTHX_
     return rx_sv;
 }
 
+#if PERL_VERSION >= 19
+I32
+RE2_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
+          char *strbeg, SSize_t minend, SV * sv,
+          void *data, U32 flags)
+#else
 I32
 RE2_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
           char *strbeg, I32 minend, SV * sv,
           void *data, U32 flags)
+#endif
 {
     RE2 * ri = (RE2*) RegSV(rx)->pprivate;
     regexp * re = RegSV(rx);
@@ -293,12 +307,21 @@ RE2_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
     return 1;
 }
 
+#if PERL_VERSION >= 19
+char *
+RE2_intuit(pTHX_ REGEXP * const rx, SV * sv, const char *strbeg, char *strpos,
+             char *strend, U32 flags, re_scream_pos_data *data)
+#else
 char *
 RE2_intuit(pTHX_ REGEXP * const rx, SV * sv, char *strpos,
              char *strend, U32 flags, re_scream_pos_data *data)
+#endif
 {
 	PERL_UNUSED_ARG(rx);
 	PERL_UNUSED_ARG(sv);
+#if PERL_VERSION >= 19
+	PERL_UNUSED_ARG(strbeg);
+#endif
 	PERL_UNUSED_ARG(strpos);
 	PERL_UNUSED_ARG(strend);
 	PERL_UNUSED_ARG(flags);
