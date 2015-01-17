@@ -178,7 +178,7 @@ RE2_comp(pTHX_
             const string error = ri->error();
             delete ri;
 
-            croak(perl_only
+            croak("%s", perl_only
                     ? "/x is not supported by RE2"
                     : error.c_str());
             return NULL; // unreachable

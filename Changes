@@ -1,6 +1,7 @@
 0.12 2015-01-17
 - Fix for `"" =~ {}` crashing
 - Fix for building on perl >= 5.20 (RT #95144, thanks Tony C. for the patch)
+- Fix build with -Werror=format-security (RT #96338)
 
 0.11 2012-07-29
 - Support named capture groups
