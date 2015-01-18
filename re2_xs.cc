@@ -10,10 +10,6 @@
 #define HAS_PERL_RE_OP_COMPILE (PERL_VERSION > 17 || \
         (PERL_VERSION == 17 && PERL_SUBVERSION >= 1))
 
-#if HAS_PERL_RE_OP_COMPILE
-#include <regcomp.h>
-#endif
-
 #if PERL_VERSION > 10
 #define RegSV(p) SvANY(p)
 #else
@@ -187,14 +183,7 @@ RE2_comp(pTHX_
         delete ri;
 
         // Fallback. Perl will either compile or print errors for us.
-#if HAS_PERL_RE_OP_COMPILE
-        // Yuck -- remove constness, the core does this too...
-        SV *pat = const_cast<SV*>(pattern);
-        return Perl_re_op_compile(aTHX_ &pat, 1, NULL, &PL_core_reg_engine,
-                NULL, NULL, flags, 0);
-#else
         return Perl_re_compile(aTHX_ pattern, flags);
-#endif
     }
 
     REGEXP *rx_sv;
