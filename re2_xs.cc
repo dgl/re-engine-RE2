@@ -10,22 +10,11 @@
 #define HAS_PERL_RE_OP_COMPILE (PERL_VERSION > 17 || \
         (PERL_VERSION == 17 && PERL_SUBVERSION >= 1))
 
-#if PERL_VERSION > 10
-#define RegSV(p) SvANY(p)
-#else
-#define RegSV(p) (p)
-#endif
-
 using std::map;
 using std::string;
 
 namespace {
-    REGEXP * RE2_comp(pTHX_
-// Constness differs on different versions of Perl
-#if PERL_VERSION == 10
-            const
-#endif
-            SV * const, U32);
+    REGEXP * RE2_comp(pTHX_ SV * const, U32);
 #if PERL_VERSION >= 19
     char *   RE2_intuit(pTHX_ REGEXP * const, SV *, const char *,
                         char *, char *, U32, re_scream_pos_data *);
@@ -91,11 +80,7 @@ const regexp_engine re2_engine = {
 namespace {
 
 REGEXP *
-RE2_comp(pTHX_
-#if PERL_VERSION == 10
-        const
-#endif
-        SV * const pattern, const U32 flags)
+RE2_comp(pTHX_ SV * const pattern, const U32 flags)
 {
     const char *exp;
     STRLEN plen;
@@ -186,25 +171,13 @@ RE2_comp(pTHX_
         return Perl_re_compile(aTHX_ pattern, flags);
     }
 
-    REGEXP *rx_sv;
-#if PERL_VERSION > 10
-    rx_sv = (REGEXP*) newSV_type(SVt_REGEXP);
-#else
-    Newxz(rx_sv, 1, REGEXP);
-    rx_sv->refcnt = 1;
-#endif
-    regexp *const rx = RegSV(rx_sv);
+    REGEXP *rx_sv = (REGEXP*) newSV_type(SVt_REGEXP);
+    regexp *const rx = SvANY(rx_sv);
 
     rx->extflags = extflags;
     rx->engine   = &re2_engine;
 
-#if PERL_VERSION > 10
     rx->pre_prefix = SvCUR(wrapped) - plen - 1;
-#else
-    /* Preserve a copy of the original pattern */
-    rx->precomp = savepvn(exp, plen);
-    rx->prelen = (I32)plen;
-#endif
 
     RX_WRAPPED(rx_sv) = savepvn(SvPVX(wrapped), SvCUR(wrapped));
     RX_WRAPLEN(rx_sv) = SvCUR(wrapped);
@@ -253,8 +226,8 @@ RE2_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
           void *data, U32 flags)
 #endif
 {
-    RE2 * ri = (RE2*) RegSV(rx)->pprivate;
-    regexp * re = RegSV(rx);
+    RE2 * ri = (RE2*) SvANY(rx)->pprivate;
+    regexp * re = SvANY(rx);
 
     re2::StringPiece res[re->nparens + 1];
 
@@ -328,7 +301,7 @@ RE2_checkstr(pTHX_ REGEXP * const rx)
 void
 RE2_free(pTHX_ REGEXP * const rx)
 {
-    delete (RE2 *) RegSV(rx)->pprivate;
+    delete (RE2 *) SvANY(rx)->pprivate;
 }
 
 // Perl polluting our namespace, again.
@@ -338,7 +311,7 @@ RE2_dupe(pTHX_ REGEXP * const rx, CLONE_PARAMS *param)
 {
 	PERL_UNUSED_ARG(param);
 
-    RE2 *previous = (RE2*) RegSV(rx)->pprivate;
+    RE2 *previous = (RE2*) SvANY(rx)->pprivate;
     RE2::Options options;
     options.Copy(previous->options());
 
@@ -357,7 +330,7 @@ RE2_package(pTHX_ REGEXP * const rx)
 // Unnamespaced
 extern "C" void RE2_possible_match_range(pTHX_ REGEXP* rx, STRLEN len, SV** min_sv, SV** max_sv)
 {
-    const RE2 *const re2 = (RE2*) RegSV(rx)->pprivate;
+    const RE2 *const re2 = (RE2*) SvANY(rx)->pprivate;
     string min, max;
 
     re2->PossibleMatchRange(&min, &max, (int)len);

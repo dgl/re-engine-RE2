@@ -1,5 +1,5 @@
 package re::engine::RE2;
-use 5.010;
+use 5.012;
 
 BEGIN {
   $re::engine::RE2::VERSION = "0.12";
@@ -12,7 +12,7 @@ our @ISA = 'Regexp';
 
 BEGIN
 {
-    XSLoader::load __PACKAGE__, $VERSION;
+    XSLoader::load __PACKAGE__, $re::engine::RE2::VERSION;
 }
 
 sub import
