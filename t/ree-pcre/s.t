@@ -2,7 +2,7 @@ use strict;
 use Test::More tests => 10;
 use re::engine::RE2;
 
-my $_;
+local $_;
 
 $_ = "ab";
 s/a//;
