@@ -26,3 +26,15 @@ PPCODE:
 
         mXPUSHs(possible_min);
         mXPUSHs(possible_max);
+
+HV*
+named_captures(SV *self)
+PROTOTYPE:
+CODE:
+        REGEXP* rx;
+        if(!SvROK(self) || 0 != strcmp("re::engine::RE2", sv_reftype(SvRV(self), TRUE)))
+                croak("qr// reference to a re::engine::RE2 instance required");
+        rx = SvRX(self);
+        RETVAL = RE2_named_captures(aTHX_ rx);
+OUTPUT:
+        RETVAL

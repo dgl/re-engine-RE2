@@ -341,4 +341,18 @@ extern "C" void RE2_possible_match_range(pTHX_ REGEXP* rx, STRLEN len, SV** min_
     return;
 }
 
+extern "C" HV* RE2_named_captures(pTHX_ REGEXP* rx)
+{
+    const RE2 *const re2 = (RE2*) SvANY(rx)->pprivate;
+    const map<string, int> ncg(re2->NamedCapturingGroups());
+    HV* hv = newHV();
+    for(map<string, int>::const_iterator it = ncg.begin();
+          it != ncg.end();
+          ++it) {
+        hv_store(hv, it->first.data(), it->first.size(), newSViv(it->second), 0);
+    }
+
+    return hv;
+}
+
 // ex:sw=4 et:
