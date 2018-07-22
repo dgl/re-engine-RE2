@@ -98,6 +98,25 @@ Example:
     is $min, 'a';
     is $max, 'c';'
 
+=item * C<named_captures()>
+
+Returns a hash of the name captures and index.
+
+Example:
+
+    my $named_captures = qr/(?P<a>\w+) (?P<d>\w+)/->named_captures;
+    is $named_captures->{a}, 1;
+    is $named_captures->{d}, 2;
+
+=item * C<number_of_capture_groups()>
+
+Return number of capture groups
+
+Example:
+
+    my $captures = qr/(Hello), (world)/->number_of_capture_groups;
+    is $captures, 2;
+
 =back
 
 =head1 PRAGMA OPTIONS
