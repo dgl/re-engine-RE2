@@ -355,4 +355,10 @@ extern "C" HV* RE2_named_captures(pTHX_ REGEXP* rx)
     return hv;
 }
 
+extern "C" int RE2_number_of_capture_groups(pTHX_ REGEXP* rx)
+{
+    const RE2 *const re2 = (RE2*) SvANY(rx)->pprivate;
+    return re2->NumberOfCapturingGroups();
+}
+
 // ex:sw=4 et:
