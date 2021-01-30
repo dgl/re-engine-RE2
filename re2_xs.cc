@@ -143,7 +143,7 @@ RE2_comp(pTHX_ SV * const pattern, const U32 flags)
 
     // Try and compile first, if this fails we will fallback to Perl regex via
     // Perl_re_compile.
-    const SV *const wrapped = stringify(aTHX_ flags, exp, plen);
+    SV *const wrapped = stringify(aTHX_ flags, exp, plen);
     RE2 * ri = NULL;
 
     if (!perl_only) {
