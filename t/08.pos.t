@@ -1,5 +1,5 @@
 #!perl
-use Test::More tests => 18;
+use Test::More tests => 19;
 
 my $str = "foo bar baz";
 my @expected = split / /, $str;
@@ -32,4 +32,6 @@ my @expected = split / /, $str;
 
   ok $str =~ /(?P<a>\w+) (?P<d>\w+)/;
   is_deeply \%+, { a => "foo", d => "bar" };
+
+  is_deeply qr/(?P<a>\w+) (?P<d>\w+)/->named_captures, { a => 1, d => 2 };
 }
