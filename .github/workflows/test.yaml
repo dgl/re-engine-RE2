@@ -20,4 +20,5 @@ jobs:
       # Install explicitly as configure metadata not checked in
       - run: cpanm ExtUtils::CppGuess
       - run: cpanm -v --installdeps .
+      - run: make
       - run: prove -lv t
