@@ -244,8 +244,7 @@ C<\n?\z> when you mean Perl's C<$>.
 
 =back
 
-Please report bugs via RT in the normal way. (Or a patch at
-L<https://github.com/dgl/re-engine-RE2> would be most welcome.)
+Please report bugs or provide patches at <https://github.com/dgl/re-engine-RE2>.
 
 =head1 AUTHORS
 

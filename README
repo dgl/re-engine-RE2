@@ -121,8 +121,8 @@ BUGS
         The above is true in Perl, false in RE2. To work around the issue
         you can write "\n?\z" when you mean Perl's "$".
 
-    Please report bugs via RT in the normal way. (Or a patch at
-    <https://github.com/dgl/re-engine-RE2> would be most welcome.)
+    Please report bugs or provide patches at
+    <https://github.com/dgl/re-engine-RE2>.
 
 AUTHORS
     David Leadbeater <dgl[at]dgl[dot]cx>

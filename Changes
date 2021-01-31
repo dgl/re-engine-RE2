@@ -1,3 +1,10 @@
+0.14 2021-01-31
+- Lexical $_ has been removed (Perl 5.24)  (PR #1, thanks Tim Heaney)
+- Expose the NamedCapturingGroups method (PR #2, thanks rouzier)
+- Fix build on macOS by defaulting RE2 to use C++11 ("tr1/unordered_set" isn't provided by the clang C++ library
+  anymore and it's 2021)
+- Link to GitHub issue tracker as CPAN RT is going away.
+
 0.13 2015-01-18
 - Unbreak Windows build
 - Up minimum perl to 5.12
