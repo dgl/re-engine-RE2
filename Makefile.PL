@@ -120,7 +120,7 @@ sub gcc_try {
 sub MY::postamble {
   return <<MAKE_FRAG;
 
-RE2_FLAGS = CC="\$(CC)" CXXFLAGS="\$(CCFLAGS) \$(CCCDLFLAGS) \$(OPTIMIZE) \$(DEFINE)" LDFLAGS="\$(OTHERLDFLAGS) \$(LDLOADLIBS)"
+RE2_FLAGS = CC="\$(CC)" CXXFLAGS="\$(CCFLAGS) \$(CCCDLFLAGS) \$(OPTIMIZE) \$(DEFINE) -DUSE_CXX0X" LDFLAGS="\$(OTHERLDFLAGS) \$(LDLOADLIBS)"
 
 re2/obj/libre2.a: re2/Makefile
 	$MAKE -C re2 obj/libre2.a \$(RE2_FLAGS)
