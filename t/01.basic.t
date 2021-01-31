@@ -9,7 +9,7 @@ ok("Hello, world" =~ /Hello, (world)/);
 is($1, 'world');
 
 no re::engine::RE2;
-is(eval '"Hello, world" =~ /(?<=Moose|Mo), (world)/', undef);
+is(eval '"Hello, world" =~ /^(?!Hello).*, (world)/', '');
 
 if (fork) {
     ok(1);

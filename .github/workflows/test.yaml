@@ -1,0 +1,24 @@
+name: Run tests
+on: [push]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ['ubuntu-latest', 'windows-latest']
+        # Latest and oldest supported
+        perl: [ '5.32', '5.12' ]
+    name: Perl ${{ matrix.perl }} on ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up perl
+        uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: ${{ matrix.perl }}
+      - run: perl -V
+      # Install explicitly as configure metadata not checked in
+      - run: cpanm ExtUtils::CppGuess
+      - run: cpanm -v --installdeps .
+      - run: make
+      - run: prove -lbv
