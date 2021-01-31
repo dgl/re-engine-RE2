@@ -31,8 +31,12 @@ my %opt = (
 
 if(eval { ExtUtils::MakeMaker->VERSION(6.46) }) {
   $opt{META_MERGE} = {
+    'meta-spec' => { version => 2 },
     resources => {
-      repository => 'https://github.com/dgl/re-engine-RE2'
+      repository => 'https://github.com/dgl/re-engine-RE2',
+      bugtracker => {
+        web => 'https://github.com/dgl/re-engine-RE2/issues',
+      }
     }
   }
 }
