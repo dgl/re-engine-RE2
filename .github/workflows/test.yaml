@@ -21,4 +21,4 @@ jobs:
       - run: cpanm ExtUtils::CppGuess
       - run: cpanm -v --installdeps .
       - run: make
-      - run: prove -lbv
+      - run: AUTOMATED_TESTING=1 prove -lbv
