@@ -17,7 +17,5 @@ jobs:
         with:
           perl-version: ${{ matrix.perl }}
       - run: perl -V
-      - run: |
-          cpanm --installdeps .
-          cat ~/.cpanm/work/*/build.log
+      - run: cpanm -v --installdeps .
       - run: prove -lv t
