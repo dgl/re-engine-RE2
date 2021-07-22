@@ -41,42 +41,55 @@ if(eval { ExtUtils::MakeMaker->VERSION(6.46) }) {
   }
 }
 
-# If the user didn't explicitly provide optimisation settings, we'll try to do
-# it ourselves, but only for gcc.
-
 my $cc = (map +(/^CC=(.*)/i), @ARGV)[0] || $Config{cc};
-if(!grep(/^OPTIMIZE=/i, @ARGV)
-    and my $gcc_version = gcc_version($cc)) {
+
+if (my $gcc_version = gcc_version($cc)) {
   say "Compiling on gcc $gcc_version";
-  my $optimize = $Config{optimize};
 
-  if($gcc_version) {
-    $optimize =~ s/-O[s0-2]/-O3/ and say "Optimize level set to -O3";
-  }
+  # If the user didn't explicitly provide optimisation settings, we'll try to do
+  # it ourselves, but only for gcc.
+  if(!grep(/^OPTIMIZE=/i, @ARGV)) {
+    my $optimize = $Config{optimize};
 
-  # Attempt to work out if we have a gcc that is likely to support -flto.
-  # This is probably a lot of work for a minimal gain, but it's worth a try.
-  if($gcc_version >= 4.5) {
-    my $try_optimize = "$optimize -flto";
-    # Try to use this flag
-    if(gcc_try(cc => $cc, %opt, OPTIMIZE => $try_optimize)) {
-      $optimize = $try_optimize;
+    if($gcc_version) {
+      $optimize =~ s/-O[s0-2]/-O3/ and say "Optimize level set to -O3";
     }
 
-    # gcc 4.9 needs this otherwise it gets rid of nearly everything in libre2.a.
-    $try_optimize = "$optimize -ffat-lto-objects";
-    if(gcc_try(cc => $cc, %opt, OPTIMIZE => $try_optimize)) {
-      $optimize = $try_optimize;
+    # Attempt to work out if we have a gcc that is likely to support -flto.
+    # This is probably a lot of work for a minimal gain, but it's worth a try.
+    if($gcc_version >= 4.5) {
+      my $try_optimize = "$optimize -flto";
+      # Try to use this flag
+      if(gcc_try(cc => $cc, %opt, OPTIMIZE => $try_optimize)) {
+        $optimize = $try_optimize;
+      }
+
+      # gcc 4.9 needs this otherwise it gets rid of nearly everything in libre2.a.
+      $try_optimize = "$optimize -ffat-lto-objects";
+      if(gcc_try(cc => $cc, %opt, OPTIMIZE => $try_optimize)) {
+        $optimize = $try_optimize;
+      }
     }
+
+    say "OPTIMIZE is now: $optimize";
+    $opt{OPTIMIZE} = $optimize;
   }
 
-  say "OPTIMIZE is now: $optimize";
-  $opt{OPTIMIZE} = $optimize;
+  if ($gcc_version >= 4.8) {
+    $opt{DEFINE} .= " -std=c++11";
+  } else {
+    say "Need gcc version new enough to support C++11, this will probably fail.";
+  }
 }
 
-my $clang_version = clang_version($cc);
-if ($clang_version >= 3) {
-  $opt{DEFINE} .= " -std=c++11";
+if (my $clang_version = clang_version($cc)) {
+  say "Compiling on clang $clang_version";
+
+  if ($clang_version >= 3) {
+    $opt{DEFINE} .= " -std=c++11";
+  } else {
+    say "Need clang version new enough to support C++11, this will probably fail.";
+  }
 }
 
 if(defined $Config{usethreads} && $Config{usethreads} eq 'define') {
