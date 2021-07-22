@@ -78,7 +78,8 @@ if (my $gcc_version = gcc_version($cc)) {
   if ($gcc_version >= 4.8) {
     $opt{DEFINE} .= " -std=c++11";
   } else {
-    say "Need gcc version new enough to support C++11, this will probably fail.";
+    say "Need gcc version new enough to support C++11, exiting.";
+    exit 1;
   }
 }
 
