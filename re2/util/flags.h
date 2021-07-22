@@ -2,26 +2,25 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+#ifndef UTIL_FLAGS_H_
+#define UTIL_FLAGS_H_
+
 // Simplified version of Google's command line flags.
 // Does not support parsing the command line.
 // If you want to do that, see
-// http://code.google.com/p/google-gflags
+// https://gflags.github.io/gflags/
 
-#ifndef RE2_UTIL_FLAGS_H__
-#define RE2_UTIL_FLAGS_H__
-
-#define DEFINE_flag(type, name, deflt, desc) \
+#define DEFINE_FLAG(type, name, deflt, desc) \
 	namespace re2 { type FLAGS_##name = deflt; }
 
-#define DECLARE_flag(type, name) \
+#define DECLARE_FLAG(type, name) \
 	namespace re2 { extern type FLAGS_##name; }
 
-#define DEFINE_bool(name, deflt, desc) DEFINE_flag(bool, name, deflt, desc)
-#define DEFINE_int32(name, deflt, desc) DEFINE_flag(int32, name, deflt, desc)
-#define DEFINE_string(name, deflt, desc) DEFINE_flag(string, name, deflt, desc)
+namespace re2 {
+template <typename T>
+T GetFlag(const T& flag) {
+  return flag;
+}
+}  // namespace re2
 
-#define DECLARE_bool(name) DECLARE_flag(bool, name)
-#define DECLARE_int32(name) DECLARE_flag(int32, name)
-#define DECLARE_string(name) DECLARE_flag(string, name)
-
-#endif  // RE2_UTIL_FLAGS_H__
+#endif  // UTIL_FLAGS_H_

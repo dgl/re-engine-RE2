@@ -2,36 +2,40 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-#include "util/util.h"
 #include "re2/prefilter.h"
+
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
+#include "util/util.h"
+#include "util/logging.h"
+#include "util/strutil.h"
+#include "util/utf.h"
 #include "re2/re2.h"
 #include "re2/unicode_casefold.h"
 #include "re2/walker-inl.h"
 
 namespace re2 {
 
-static const int Trace = false;
+static const bool ExtraDebug = false;
 
-typedef set<string>::iterator SSIter;
-typedef set<string>::const_iterator ConstSSIter;
+typedef std::set<std::string>::iterator SSIter;
+typedef std::set<std::string>::const_iterator ConstSSIter;
 
-static int alloc_id = 100000;  // Used for debugging.
 // Initializes a Prefilter, allocating subs_ as necessary.
 Prefilter::Prefilter(Op op) {
   op_ = op;
   subs_ = NULL;
   if (op_ == AND || op_ == OR)
-    subs_ = new vector<Prefilter*>;
-
-  alloc_id_ = alloc_id++;
-  VLOG(10) << "alloc_id: " << alloc_id_;
+    subs_ = new std::vector<Prefilter*>;
 }
 
 // Destroys a Prefilter.
 Prefilter::~Prefilter() {
-  VLOG(10) << "Deleted: " << alloc_id_;
   if (subs_) {
-    for (int i = 0; i < subs_->size(); i++)
+    for (size_t i = 0; i < subs_->size(); i++)
       delete (*subs_)[i];
     delete subs_;
     subs_ = NULL;
@@ -45,7 +49,7 @@ Prefilter* Prefilter::Simplify() {
   }
 
   // Nothing left in the AND/OR.
-  if (subs_->size() == 0) {
+  if (subs_->empty()) {
     if (op_ == AND)
       op_ = ALL;  // AND of nothing is true
     else
@@ -100,7 +104,7 @@ Prefilter* Prefilter::AndOr(Op op, Prefilter* a, Prefilter* b) {
 
   // If a and b match op, merge their contents.
   if (a->op() == op && b->op() == op) {
-    for (int i = 0; i < b->subs()->size(); i++) {
+    for (size_t i = 0; i < b->subs()->size(); i++) {
       Prefilter* bb = (*b->subs())[i];
       a->subs()->push_back(bb);
     }
@@ -136,35 +140,35 @@ Prefilter* Prefilter::Or(Prefilter* a, Prefilter* b) {
   return AndOr(OR, a, b);
 }
 
-static void SimplifyStringSet(set<string> *ss) {
+static void SimplifyStringSet(std::set<std::string>* ss) {
   // Now make sure that the strings aren't redundant.  For example, if
   // we know "ab" is a required string, then it doesn't help at all to
   // know that "abc" is also a required string, so delete "abc". This
   // is because, when we are performing a string search to filter
-  // regexps, matching ab will already allow this regexp to be a
-  // candidate for match, so further matching abc is redundant.
-
+  // regexps, matching "ab" will already allow this regexp to be a
+  // candidate for match, so further matching "abc" is redundant.
+  // Note that we must ignore "" because find() would find it at the
+  // start of everything and thus we would end up erasing everything.
   for (SSIter i = ss->begin(); i != ss->end(); ++i) {
+    if (i->empty())
+      continue;
     SSIter j = i;
     ++j;
     while (j != ss->end()) {
-      // Increment j early so that we can erase the element it points to.
-      SSIter old_j = j;
+      if (j->find(*i) != std::string::npos) {
+        j = ss->erase(j);
+        continue;
+      }
       ++j;
-      if (old_j->find(*i) != string::npos)
-        ss->erase(old_j);
     }
   }
 }
 
-Prefilter* Prefilter::OrStrings(set<string>* ss) {
+Prefilter* Prefilter::OrStrings(std::set<std::string>* ss) {
+  Prefilter* or_prefilter = new Prefilter(NONE);
   SimplifyStringSet(ss);
-  Prefilter* or_prefilter = NULL;
-  if (!ss->empty()) {
-    or_prefilter = new Prefilter(NONE);
-    for (SSIter i = ss->begin(); i != ss->end(); ++i)
-      or_prefilter = Or(or_prefilter, FromString(*i));
-  }
+  for (SSIter i = ss->begin(); i != ss->end(); ++i)
+    or_prefilter = Or(or_prefilter, FromString(*i));
   return or_prefilter;
 }
 
@@ -175,13 +179,19 @@ static Rune ToLowerRune(Rune r) {
     return r;
   }
 
-  CaseFold *f = LookupCaseFold(unicode_tolower, num_unicode_tolower, r);
+  const CaseFold *f = LookupCaseFold(unicode_tolower, num_unicode_tolower, r);
   if (f == NULL || r < f->lo)
     return r;
   return ApplyFold(f, r);
 }
 
-Prefilter* Prefilter::FromString(const string& str) {
+static Rune ToLowerRuneLatin1(Rune r) {
+  if ('A' <= r && r <= 'Z')
+    r += 'a' - 'A';
+  return r;
+}
+
+Prefilter* Prefilter::FromString(const std::string& str) {
   Prefilter* m = new Prefilter(Prefilter::ATOM);
   m->atom_ = str;
   return m;
@@ -204,25 +214,26 @@ class Prefilter::Info {
   static Info* Quest(Info* a);
   static Info* EmptyString();
   static Info* NoMatch();
-  static Info* AnyChar();
-  static Info* CClass(CharClass* cc);
+  static Info* AnyCharOrAnyByte();
+  static Info* CClass(CharClass* cc, bool latin1);
   static Info* Literal(Rune r);
+  static Info* LiteralLatin1(Rune r);
   static Info* AnyMatch();
 
   // Format Info as a string.
-  string ToString();
+  std::string ToString();
 
   // Caller takes ownership of the Prefilter.
   Prefilter* TakeMatch();
 
-  set<string>& exact() { return exact_; }
+  std::set<std::string>& exact() { return exact_; }
 
   bool is_exact() const { return is_exact_; }
 
   class Walker;
 
  private:
-  set<string> exact_;
+  std::set<std::string> exact_;
 
   // When is_exact_ is true, the strings that match
   // are placed in exact_. When it is no longer an exact
@@ -257,19 +268,11 @@ Prefilter* Prefilter::Info::TakeMatch() {
 }
 
 // Format a Info in string form.
-string Prefilter::Info::ToString() {
-  if (this == NULL) {
-    // Sometimes when iterating on children of a node,
-    // some children might have NULL Info. Adding
-    // the check here for NULL to take care of cases where
-    // the caller is not checking.
-    return "";
-  }
-
+std::string Prefilter::Info::ToString() {
   if (is_exact_) {
     int n = 0;
-    string s;
-    for (set<string>::iterator i = exact_.begin(); i != exact_.end(); ++i) {
+    std::string s;
+    for (SSIter i = exact_.begin(); i != exact_.end(); ++i) {
       if (n++ > 0)
         s += ",";
       s += *i;
@@ -284,16 +287,17 @@ string Prefilter::Info::ToString() {
 }
 
 // Add the strings from src to dst.
-static void CopyIn(const set<string>& src, set<string>* dst) {
+static void CopyIn(const std::set<std::string>& src,
+                   std::set<std::string>* dst) {
   for (ConstSSIter i = src.begin(); i != src.end(); ++i)
     dst->insert(*i);
 }
 
 // Add the cross-product of a and b to dst.
 // (For each string i in a and j in b, add i+j.)
-static void CrossProduct(const set<string>& a,
-                         const set<string>& b,
-                         set<string>* dst) {
+static void CrossProduct(const std::set<std::string>& a,
+                         const std::set<std::string>& b,
+                         std::set<std::string>* dst) {
   for (ConstSSIter i = a.begin(); i != a.end(); ++i)
     for (ConstSSIter j = b.begin(); j != b.end(); ++j)
       dst->insert(*i + *j);
@@ -384,10 +388,15 @@ Prefilter::Info* Prefilter::Info::Plus(Info *a) {
   return ab;
 }
 
-static string RuneToString(Rune r) {
+static std::string RuneToString(Rune r) {
   char buf[UTFmax];
   int n = runetochar(buf, &r);
-  return string(buf, n);
+  return std::string(buf, n);
+}
+
+static std::string RuneToStringLatin1(Rune r) {
+  char c = r & 0xff;
+  return std::string(&c, 1);
 }
 
 // Constructs Info for literal rune.
@@ -398,8 +407,16 @@ Prefilter::Info* Prefilter::Info::Literal(Rune r) {
   return info;
 }
 
-// Constructs Info for dot (any character).
-Prefilter::Info* Prefilter::Info::AnyChar() {
+// Constructs Info for literal rune for Latin1 encoded string.
+Prefilter::Info* Prefilter::Info::LiteralLatin1(Rune r) {
+  Info* info = new Info();
+  info->exact_.insert(RuneToStringLatin1(ToLowerRuneLatin1(r)));
+  info->is_exact_ = true;
+  return info;
+}
+
+// Constructs Info for dot (any character) or \C (any byte).
+Prefilter::Info* Prefilter::Info::AnyCharOrAnyByte() {
   Prefilter::Info* info = new Prefilter::Info();
   info->match_ = new Prefilter(ALL);
   return info;
@@ -432,34 +449,40 @@ Prefilter::Info* Prefilter::Info::EmptyString() {
 
 // Constructs Prefilter::Info for a character class.
 typedef CharClass::iterator CCIter;
-Prefilter::Info* Prefilter::Info::CClass(CharClass *cc) {
-  if (Trace) {
-    VLOG(0) << "CharClassInfo:";
+Prefilter::Info* Prefilter::Info::CClass(CharClass *cc,
+                                         bool latin1) {
+  if (ExtraDebug) {
+    LOG(ERROR) << "CharClassInfo:";
     for (CCIter i = cc->begin(); i != cc->end(); ++i)
-      VLOG(0) << "  " << i->lo << "-" << i->hi;
+      LOG(ERROR) << "  " << i->lo << "-" << i->hi;
   }
 
   // If the class is too large, it's okay to overestimate.
   if (cc->size() > 10)
-    return AnyChar();
+    return AnyCharOrAnyByte();
 
   Prefilter::Info *a = new Prefilter::Info();
   for (CCIter i = cc->begin(); i != cc->end(); ++i)
-    for (Rune r = i->lo; r <= i->hi; r++)
-      a->exact_.insert(RuneToString(ToLowerRune(r)));
+    for (Rune r = i->lo; r <= i->hi; r++) {
+      if (latin1) {
+        a->exact_.insert(RuneToStringLatin1(ToLowerRuneLatin1(r)));
+      } else {
+        a->exact_.insert(RuneToString(ToLowerRune(r)));
+      }
+    }
+
 
   a->is_exact_ = true;
 
-  if (Trace) {
-    VLOG(0) << " = " << a->ToString();
-  }
+  if (ExtraDebug)
+    LOG(ERROR) << " = " << a->ToString();
 
   return a;
 }
 
 class Prefilter::Info::Walker : public Regexp::Walker<Prefilter::Info*> {
  public:
-  Walker() {}
+  Walker(bool latin1) : latin1_(latin1) {}
 
   virtual Info* PostVisit(
       Regexp* re, Info* parent_arg,
@@ -470,15 +493,20 @@ class Prefilter::Info::Walker : public Regexp::Walker<Prefilter::Info*> {
       Regexp* re,
       Info* parent_arg);
 
+  bool latin1() { return latin1_; }
  private:
-  DISALLOW_EVIL_CONSTRUCTORS(Walker);
+  bool latin1_;
+
+  Walker(const Walker&) = delete;
+  Walker& operator=(const Walker&) = delete;
 };
 
 Prefilter::Info* Prefilter::BuildInfo(Regexp* re) {
-  if (Trace) {
-    LOG(INFO) << "BuildPrefilter::Info: " << re->ToString();
-  }
-  Prefilter::Info::Walker w;
+  if (ExtraDebug)
+    LOG(ERROR) << "BuildPrefilter::Info: " << re->ToString();
+
+  bool latin1 = (re->parse_flags() & Regexp::Latin1) != 0;
+  Prefilter::Info::Walker w(latin1);
   Prefilter::Info* info = w.WalkExponential(re, NULL, 100000);
 
   if (w.stopped_early()) {
@@ -524,7 +552,12 @@ Prefilter::Info* Prefilter::Info::Walker::PostVisit(
       break;
 
     case kRegexpLiteral:
-      info = Literal(re->rune());
+      if (latin1()) {
+        info = LiteralLatin1(re->rune());
+      }
+      else {
+        info = Literal(re->rune());
+      }
       break;
 
     case kRegexpLiteralString:
@@ -532,9 +565,17 @@ Prefilter::Info* Prefilter::Info::Walker::PostVisit(
         info = NoMatch();
         break;
       }
-      info = Literal(re->runes()[0]);
-      for (int i = 1; i < re->nrunes(); i++)
-        info = Concat(info, Literal(re->runes()[i]));
+      if (latin1()) {
+        info = LiteralLatin1(re->runes()[0]);
+        for (int i = 1; i < re->nrunes(); i++) {
+          info = Concat(info, LiteralLatin1(re->runes()[i]));
+        }
+      } else {
+        info = Literal(re->runes()[0]);
+        for (int i = 1; i < re->nrunes(); i++) {
+          info = Concat(info, Literal(re->runes()[i]));
+        }
+      }
       break;
 
     case kRegexpConcat: {
@@ -564,7 +605,6 @@ Prefilter::Info* Prefilter::Info::Walker::PostVisit(
       info = child_args[0];
       for (int i = 1; i < nchild_args; i++)
         info = Alt(info, child_args[i]);
-      VLOG(10) << "Alt: " << info->ToString();
       break;
 
     case kRegexpStar:
@@ -580,12 +620,13 @@ Prefilter::Info* Prefilter::Info::Walker::PostVisit(
       break;
 
     case kRegexpAnyChar:
+    case kRegexpAnyByte:
       // Claim nothing, except that it's not empty.
-      info = AnyChar();
+      info = AnyCharOrAnyByte();
       break;
 
     case kRegexpCharClass:
-      info = CClass(re->cc());
+      info = CClass(re->cc(), latin1());
       break;
 
     case kRegexpCapture:
@@ -594,10 +635,9 @@ Prefilter::Info* Prefilter::Info::Walker::PostVisit(
       break;
   }
 
-  if (Trace) {
-    VLOG(0) << "BuildInfo " << re->ToString()
-            << ": " << info->ToString();
-  }
+  if (ExtraDebug)
+    LOG(ERROR) << "BuildInfo " << re->ToString()
+               << ": " << (info ? info->ToString() : "");
 
   return info;
 }
@@ -608,22 +648,20 @@ Prefilter* Prefilter::FromRegexp(Regexp* re) {
     return NULL;
 
   Regexp* simple = re->Simplify();
-  Prefilter::Info *info = BuildInfo(simple);
+  if (simple == NULL)
+    return NULL;
 
+  Prefilter::Info* info = BuildInfo(simple);
   simple->Decref();
   if (info == NULL)
     return NULL;
 
   Prefilter* m = info->TakeMatch();
-
   delete info;
   return m;
 }
 
-string Prefilter::DebugString() const {
-  if (this == NULL)
-    return "<nil>";
-
+std::string Prefilter::DebugString() const {
   switch (op_) {
     default:
       LOG(DFATAL) << "Bad op in Prefilter::DebugString: " << op_;
@@ -635,20 +673,22 @@ string Prefilter::DebugString() const {
     case ALL:
       return "";
     case AND: {
-      string s = "";
-      for (int i = 0; i < subs_->size(); i++) {
+      std::string s = "";
+      for (size_t i = 0; i < subs_->size(); i++) {
         if (i > 0)
           s += " ";
-        s += (*subs_)[i]->DebugString();
+        Prefilter* sub = (*subs_)[i];
+        s += sub ? sub->DebugString() : "<nil>";
       }
       return s;
     }
     case OR: {
-      string s = "(";
-      for (int i = 0; i < subs_->size(); i++) {
+      std::string s = "(";
+      for (size_t i = 0; i < subs_->size(); i++) {
         if (i > 0)
           s += "|";
-        s += (*subs_)[i]->DebugString();
+        Prefilter* sub = (*subs_)[i];
+        s += sub ? sub->DebugString() : "<nil>";
       }
       s += ")";
       return s;

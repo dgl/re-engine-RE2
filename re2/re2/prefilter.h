@@ -2,14 +2,19 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+#ifndef RE2_PREFILTER_H_
+#define RE2_PREFILTER_H_
+
 // Prefilter is the class used to extract string guards from regexps.
 // Rather than using Prefilter class directly, use FilteredRE2.
 // See filtered_re2.h
 
-#ifndef RE2_PREFILTER_H_
-#define RE2_PREFILTER_H_
+#include <set>
+#include <string>
+#include <vector>
 
 #include "util/util.h"
+#include "util/logging.h"
 
 namespace re2 {
 
@@ -32,19 +37,19 @@ class Prefilter {
   ~Prefilter();
 
   Op op() { return op_; }
-  const string& atom() const { return atom_; }
+  const std::string& atom() const { return atom_; }
   void set_unique_id(int id) { unique_id_ = id; }
   int unique_id() const { return unique_id_; }
 
   // The children of the Prefilter node.
-  vector<Prefilter*>* subs() {
-    CHECK(op_ == AND || op_ == OR);
+  std::vector<Prefilter*>* subs() {
+    DCHECK(op_ == AND || op_ == OR);
     return subs_;
   }
 
   // Set the children vector. Prefilter takes ownership of subs and
   // subs_ will be deleted when Prefilter is deleted.
-  void set_subs(vector<Prefilter*>* subs) { subs_ = subs; }
+  void set_subs(std::vector<Prefilter*>* subs) { subs_ = subs; }
 
   // Given a RE2, return a Prefilter. The caller takes ownership of
   // the Prefilter and should deallocate it. Returns NULL if Prefilter
@@ -52,7 +57,7 @@ class Prefilter {
   static Prefilter* FromRE2(const RE2* re2);
 
   // Returns a readable debug string of the prefilter.
-  string DebugString() const;
+  std::string DebugString() const;
 
  private:
   class Info;
@@ -70,9 +75,9 @@ class Prefilter {
 
   static Prefilter* FromRegexp(Regexp* a);
 
-  static Prefilter* FromString(const string& str);
+  static Prefilter* FromString(const std::string& str);
 
-  static Prefilter* OrStrings(set<string>* ss);
+  static Prefilter* OrStrings(std::set<std::string>* ss);
 
   static Info* BuildInfo(Regexp* re);
 
@@ -82,10 +87,10 @@ class Prefilter {
   Op op_;
 
   // Sub-matches for AND or OR Prefilter.
-  vector<Prefilter*>* subs_;
+  std::vector<Prefilter*>* subs_;
 
   // Actual string to match in leaf node.
-  string atom_;
+  std::string atom_;
 
   // If different prefilters have the same string atom, or if they are
   // structurally the same (e.g., OR of same atom strings) they are
@@ -94,10 +99,8 @@ class Prefilter {
   // and -1 for duplicate nodes.
   int unique_id_;
 
-  // Used for debugging, helps in tracking memory leaks.
-  int alloc_id_;
-
-  DISALLOW_EVIL_CONSTRUCTORS(Prefilter);
+  Prefilter(const Prefilter&) = delete;
+  Prefilter& operator=(const Prefilter&) = delete;
 };
 
 }  // namespace re2

@@ -4,18 +4,19 @@
 
 // Test StringGenerator.
 
-#include <stdlib.h>
+#include <stdint.h>
 #include <string>
-#include <vector>
+
 #include "util/test.h"
+#include "util/utf.h"
 #include "re2/testing/string_generator.h"
 #include "re2/testing/regexp_generator.h"
 
 namespace re2 {
 
 // Returns i to the e.
-static int64 IntegerPower(int i, int e) {
-  int64 p = 1;
+static int64_t IntegerPower(int i, int e) {
+  int64_t p = 1;
   while (e-- > 0)
     p *= i;
   return p;
@@ -30,12 +31,12 @@ static int64 IntegerPower(int i, int e) {
 // If all of these hold, the StringGenerator is behaving.
 // Assumes that the alphabet is sorted, so that the generated
 // strings can just be compared lexicographically.
-static void RunTest(int len, string alphabet, bool donull) {
+static void RunTest(int len, const std::string& alphabet, bool donull) {
   StringGenerator g(len, Explode(alphabet));
 
   int n = 0;
   int last_l = -1;
-  string last_s;
+  std::string last_s;
 
   if (donull) {
     g.GenerateNULL();
@@ -46,7 +47,7 @@ static void RunTest(int len, string alphabet, bool donull) {
   }
 
   while (g.HasNext()) {
-    string s = g.Next().as_string();
+    std::string s = std::string(g.Next());
     n++;
 
     // Check that all characters in s appear in alphabet.
@@ -69,7 +70,7 @@ static void RunTest(int len, string alphabet, bool donull) {
   }
 
   // Check total string count.
-  int64 m = 0;
+  int64_t m = 0;
   int alpha = utflen(alphabet.c_str());
   if (alpha == 0)  // Degenerate case.
     len = 0;

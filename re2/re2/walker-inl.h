@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+#ifndef RE2_WALKER_INL_H_
+#define RE2_WALKER_INL_H_
+
 // Helper class for traversing Regexps without recursion.
 // Clients should declare their own subclasses that override
 // the PreVisit and PostVisit methods, which are called before
@@ -10,9 +13,9 @@
 // Not quite the Visitor pattern, because (among other things)
 // the Visitor pattern is recursive.
 
-#ifndef RE2_WALKER_INL_H__
-#define RE2_WALKER_INL_H__
+#include <stack>
 
+#include "util/logging.h"
 #include "re2/regexp.h"
 
 namespace re2 {
@@ -86,13 +89,14 @@ template<typename T> class Regexp::Walker {
 
  private:
   // Walk state for the entire traversal.
-  stack<WalkState<T> >* stack_;
+  std::stack<WalkState<T>> stack_;
   bool stopped_early_;
   int max_visits_;
 
   T WalkInternal(Regexp* re, T top_arg, bool use_copy);
 
-  DISALLOW_EVIL_CONSTRUCTORS(Walker);
+  Walker(const Walker&) = delete;
+  Walker& operator=(const Walker&) = delete;
 };
 
 template<typename T> T Regexp::Walker<T>::PreVisit(Regexp* re,
@@ -115,7 +119,7 @@ template<typename T> T Regexp::Walker<T>::Copy(T arg) {
 
 // State about a single level in the traversal.
 template<typename T> struct WalkState {
-  WalkState<T>(Regexp* re, T parent)
+  WalkState(Regexp* re, T parent)
     : re(re),
       n(-1),
       parent_arg(parent),
@@ -130,24 +134,22 @@ template<typename T> struct WalkState {
 };
 
 template<typename T> Regexp::Walker<T>::Walker() {
-  stack_ = new stack<WalkState<T> >;
   stopped_early_ = false;
 }
 
 template<typename T> Regexp::Walker<T>::~Walker() {
   Reset();
-  delete stack_;
 }
 
 // Clears the stack.  Should never be necessary, since
 // Walk always enters and exits with an empty stack.
 // Logs DFATAL if stack is not already clear.
 template<typename T> void Regexp::Walker<T>::Reset() {
-  if (stack_ && stack_->size() > 0) {
+  if (!stack_.empty()) {
     LOG(DFATAL) << "Stack not empty.";
-    while (stack_->size() > 0) {
-      delete stack_->top().child_args;
-      stack_->pop();
+    while (!stack_.empty()) {
+      delete[] stack_.top().child_args;
+      stack_.pop();
     }
   }
 }
@@ -161,12 +163,12 @@ template<typename T> T Regexp::Walker<T>::WalkInternal(Regexp* re, T top_arg,
     return top_arg;
   }
 
-  stack_->push(WalkState<T>(re, top_arg));
+  stack_.push(WalkState<T>(re, top_arg));
 
   WalkState<T>* s;
   for (;;) {
     T t;
-    s = &stack_->top();
+    s = &stack_.top();
     Regexp* re = s->re;
     switch (s->n) {
       case -1: {
@@ -187,7 +189,7 @@ template<typename T> T Regexp::Walker<T>::WalkInternal(Regexp* re, T top_arg,
           s->child_args = &s->child_arg;
         else if (re->nsub_ > 1)
           s->child_args = new T[re->nsub_];
-        // Fall through.
+        FALLTHROUGH_INTENDED;
       }
       default: {
         if (re->nsub_ > 0) {
@@ -197,7 +199,7 @@ template<typename T> T Regexp::Walker<T>::WalkInternal(Regexp* re, T top_arg,
               s->child_args[s->n] = Copy(s->child_args[s->n - 1]);
               s->n++;
             } else {
-              stack_->push(WalkState<T>(sub[s->n], s->pre_arg));
+              stack_.push(WalkState<T>(sub[s->n], s->pre_arg));
             }
             continue;
           }
@@ -210,12 +212,12 @@ template<typename T> T Regexp::Walker<T>::WalkInternal(Regexp* re, T top_arg,
       }
     }
 
-    // We've finished stack_->top().
+    // We've finished stack_.top().
     // Update next guy down.
-    stack_->pop();
-    if (stack_->size() == 0)
+    stack_.pop();
+    if (stack_.empty())
       return t;
-    s = &stack_->top();
+    s = &stack_.top();
     if (s->child_args != NULL)
       s->child_args[s->n] = t;
     else
@@ -241,4 +243,4 @@ template<typename T> T Regexp::Walker<T>::WalkExponential(Regexp* re, T top_arg,
 
 }  // namespace re2
 
-#endif  // RE2_WALKER_INL_H__
+#endif  // RE2_WALKER_INL_H_

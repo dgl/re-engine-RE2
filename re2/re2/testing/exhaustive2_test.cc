@@ -4,11 +4,13 @@
 
 // Exhaustive testing of regular expression matching.
 
-#include "util/test.h"
-#include "re2/re2.h"
-#include "re2/testing/exhaustive_tester.h"
+#include <stddef.h>
+#include <memory>
+#include <string>
+#include <vector>
 
-DECLARE_string(regexp_engines);
+#include "util/test.h"
+#include "re2/testing/exhaustive_tester.h"
 
 namespace re2 {
 
@@ -21,9 +23,9 @@ TEST(EmptyString, Exhaustive) {
 
 // Test escaped versions of regexp syntax.
 TEST(Punctuation, Literals) {
-  vector<string> alphabet = Explode("()*+?{}[]\\^$.");
-  vector<string> escaped = alphabet;
-  for (int i = 0; i < escaped.size(); i++)
+  std::vector<std::string> alphabet = Explode("()*+?{}[]\\^$.");
+  std::vector<std::string> escaped = alphabet;
+  for (size_t i = 0; i < escaped.size(); i++)
     escaped[i] = "\\" + escaped[i];
   ExhaustiveTest(1, 1, escaped, RegexpGenerator::EgrepOps(),
                  2, alphabet, "", "");
@@ -60,7 +62,7 @@ TEST(LineEnds, Exhaustive) {
 // provides a mechanism, and RE2 could add new syntax if needed.
 //
 // TEST(Newlines, Exhaustive) {
-//   vector<string> empty_vector;
+//   std::vector<std::string> empty_vector;
 //   ExhaustiveTest(1, 1, Split(" ", "\\n . a [^a]"),
 //                  RegexpGenerator::EgrepOps(),
 //                  4, Explode("a\n"), "");
