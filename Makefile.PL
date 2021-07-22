@@ -74,16 +74,21 @@ if(!grep(/^OPTIMIZE=/i, @ARGV)
   $opt{OPTIMIZE} = $optimize;
 }
 
+my $clang_version = clang_version($cc);
+if ($clang_version >= 3) {
+  $opt{DEFINE} .= " -std=c++11";
+}
+
 if(defined $Config{usethreads} && $Config{usethreads} eq 'define') {
   if(defined $Config{i_pthread} && $Config{i_pthread} eq 'define') {
-    $opt{DEFINE} = "-DHAVE_PTHREAD -pthread";
+    $opt{DEFINE} .= " -DHAVE_PTHREAD -pthread";
   } else {
     # For now this allows compilation under Win32/Strawberry, but might cause weird crashes on thread
     # destruction...
-    $opt{DEFINE} = "-DNO_THREADS";
+    $opt{DEFINE} .= " -DNO_THREADS";
   }
 } else {
-  $opt{DEFINE} = "-DNO_THREADS";
+  $opt{DEFINE} .= " -DNO_THREADS";
 }
 
 # This is a bit hacky, RE2 makefile needs GNU make, for now we'll try to find
@@ -115,6 +120,13 @@ sub gcc_try {
   my(%opts) = @_;
   system "$opts{cc} $opts{CCFLAGS} $opts{OPTIMIZE} -c -o /dev/null /dev/null >/dev/null 2>&1";
   not $?;
+}
+
+sub clang_version {
+  my ($cc) = @_;
+  my $out = qx{$cc -v 2>&1};
+  # Just the major
+  $out =~ /clang version (\d+)/ ? $1 : 0;
 }
 
 sub MY::postamble {
