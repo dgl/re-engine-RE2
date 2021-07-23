@@ -1,3 +1,9 @@
+0.15 2021-07-23
+- Update to latest RE2, as a result this now requires a C++11 compiler
+- Detect clang and force it to use C++11
+- Make minimum Perl version 5.20. (Older versions are failing tests on newer RE2.)
+  Don't have time to find what breaks things on older Perl versions.
+
 0.14 2021-01-31
 - Lexical $_ has been removed (Perl 5.24)  (PR #1, thanks Tim Heaney)
 - Expose the NamedCapturingGroups method (PR #2, thanks rouzier)

@@ -1,5 +1,8 @@
 # -*- mode: org -*-
 
+* Use ExtUtils::CppGuess's C++11 support, rather than doing it ourselves
+  (Probably needs some fixes in CppGuess for some platforms I tried though)
+
 * Fix UTF-8 support
   This turns out to be harder than I was thinking. The first step is to compile
   two versions of the regexp, one for matching UTF-8 and one for matching
