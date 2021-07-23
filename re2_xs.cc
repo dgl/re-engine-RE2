@@ -4,28 +4,16 @@
 #include <re2/re2.h>
 #include <map>
 #include "re2_xs.h"
-#include "compat-cophh.h"
-#include "compat-rx.h"
-
-#define HAS_PERL_RE_OP_COMPILE (PERL_VERSION > 17 || \
-        (PERL_VERSION == 17 && PERL_SUBVERSION >= 1))
 
 using std::map;
 using std::string;
 
 namespace {
     REGEXP * RE2_comp(pTHX_ SV * const, U32);
-#if PERL_VERSION >= 19
     char *   RE2_intuit(pTHX_ REGEXP * const, SV *, const char *,
                         char *, char *, U32, re_scream_pos_data *);
     I32      RE2_exec(pTHX_ REGEXP * const, char *, char *,
                       char *, SSize_t, SV *, void *, U32);
-#else
-    I32      RE2_exec(pTHX_ REGEXP * const, char *, char *,
-                      char *, I32, SV *, void *, U32);
-    char *   RE2_intuit(pTHX_ REGEXP * const, SV *, char *,
-                        char *, U32, re_scream_pos_data *);
-#endif
     SV *     RE2_checkstr(pTHX_ REGEXP * const);
     void     RE2_free(pTHX_ REGEXP * const);
     SV *     RE2_package(pTHX_ REGEXP * const);
@@ -72,9 +60,7 @@ const regexp_engine re2_engine = {
 #if defined(USE_ITHREADS)
     RE2_dupe,
 #endif
-#if HAS_PERL_RE_OP_COMPILE
     NULL,
-#endif
 };
 
 namespace {
@@ -269,21 +255,13 @@ RE2_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
     return 1;
 }
 
-#if PERL_VERSION >= 19
 char *
 RE2_intuit(pTHX_ REGEXP * const rx, SV * sv, const char *strbeg, char *strpos,
              char *strend, U32 flags, re_scream_pos_data *data)
-#else
-char *
-RE2_intuit(pTHX_ REGEXP * const rx, SV * sv, char *strpos,
-             char *strend, U32 flags, re_scream_pos_data *data)
-#endif
 {
 	PERL_UNUSED_ARG(rx);
 	PERL_UNUSED_ARG(sv);
-#if PERL_VERSION >= 19
 	PERL_UNUSED_ARG(strbeg);
-#endif
 	PERL_UNUSED_ARG(strpos);
 	PERL_UNUSED_ARG(strend);
 	PERL_UNUSED_ARG(flags);

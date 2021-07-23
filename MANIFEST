@@ -1,6 +1,4 @@
 Changes
-compat-cophh.h
-compat-rx.h
 lib/re/engine/RE2.pm
 Makefile.PL
 MANIFEST			This list of files
