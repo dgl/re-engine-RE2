@@ -9,7 +9,7 @@ jobs:
         #os: ['ubuntu-latest', 'windows-latest']
         os: ['ubuntu-latest']
         # Latest and oldest supported
-        perl: [ '5.34', '5.14' ]
+        perl: [ '5.34', '5.20' ]
     name: Perl ${{ matrix.perl }} on ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
