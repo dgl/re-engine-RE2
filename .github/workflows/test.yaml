@@ -19,7 +19,13 @@ jobs:
           perl-version: ${{ matrix.perl }}
       - run: perl -V
       # Install explicitly as configure metadata not checked in
-      - run: cpanm ExtUtils::CppGuess
+      - run: |
+        cpanm ExtUtils::CppGuess
+        exit=$?
+        if [ $exit != 0 ]; then
+          cat /home/runner/.cpanm/work/*/build.log
+        fi
+        exit $exit
       - run: cpanm -v --installdeps .
       - run: make
       - run: prove -lbv
