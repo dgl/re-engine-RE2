@@ -20,10 +20,11 @@ jobs:
       - run: perl -V
       # Install explicitly as configure metadata not checked in
       - run: |
+          set +e
           cpanm ExtUtils::CppGuess
           exit=$?
           if [ $exit != 0 ]; then
-            cat /home/runner/.cpanm/work/*/build.log
+            cat ~/.cpanm/work/*/build.log
           fi
           exit $exit
       - run: cpanm -v --installdeps .
