@@ -295,7 +295,7 @@ RE2_dupe(pTHX_ REGEXP * const rx, CLONE_PARAMS *param)
     RE2::Options options;
     options.Copy(previous->options());
 
-    return new RE2 (re2::StringPiece(RX_WRAPPED(rx), RX_WRAPLEN(rx)), options);
+    return new RE2 (previous->pattern(), options);
 }
 
 SV *
