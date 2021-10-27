@@ -101,10 +101,12 @@ RE2_comp(pTHX_ SV * const pattern, const U32 flags)
     // XXX: Need to compile two versions?
     /* The pattern is not UTF-8. Tell RE2 to treat it as Latin1. */
 #ifdef RXf_UTF8
-    if (!(flags & RXf_UTF8))
+    if (flags & RXf_UTF8)
 #else
-    if (!SvUTF8(pattern))
+    if (SvUTF8(pattern))
 #endif
+        extflags |= RXf_MATCH_UTF8;
+    else
         options.set_encoding(RE2::Options::EncodingLatin1);
 
     options.set_log_errors(false);
