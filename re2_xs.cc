@@ -135,7 +135,7 @@ RE2_comp(pTHX_ SV * const pattern, const U32 flags)
     RE2 * ri = NULL;
 
     if (!perl_only) {
-        ri = new RE2 (exp, options);
+        ri = new RE2 (re2::StringPiece(SvPVX(wrapped), SvCUR(wrapped)), options);
     }
 
     if (perl_only || ri->error_code()) {
