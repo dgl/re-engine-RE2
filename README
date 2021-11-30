@@ -129,7 +129,7 @@ BUGS
           my $p = "a*";
           my @m = $s =~ /$p/g;
 
-        In Perl, the above yields an array of $n empty strings, where $n
+        In Perl, the above yields an array of $n + 1 empty strings, where $n
         is the length of $s. When using RE2, the above does not terminate
         and causes the machine to run out of memory.
 
