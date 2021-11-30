@@ -121,17 +121,17 @@ BUGS
         The above is true in Perl, false in RE2. To work around the issue
         you can write "\n?\z" when you mean Perl's "$".
 
-    *   Matching against the empty pattern in list context does not terminate
+    *   If the pattern is such that it should successfully match the empty
+        string, then matching against the pattern in list context with the
+        global modifier set does not terminate
 
           my $s = "tood";
-          my $p = "";
+          my $p = "a*";
           my @m = $s =~ /$p/g;
 
-        In Perl, the above yields an array of $n + 1 empty strings, where $n
+        In Perl, the above yields an array of $n empty strings, where $n
         is the length of $s. When using RE2, the above does not terminate
-        and causes the machine to run out of memory. To work around the
-        issue, check whether the pattern is empty before matching against it
-        in list context, and handle the case of an empty pattern separately.
+        and causes the machine to run out of memory.
 
     Please report bugs or provide patches at
     <https://github.com/dgl/re-engine-RE2>.
