@@ -159,6 +159,9 @@ RE2_comp(pTHX_ SV * const pattern, const U32 flags)
 
     REGEXP *rx_sv = (REGEXP*) newSV_type(SVt_REGEXP);
     regexp *const rx = SvANY(rx_sv);
+    /* Zero the structure before we populate it. This future proofs us
+     * from any new fields or whatnot in the REGEXP structure */
+    Zero(rx,1,REGEXP);
 
     rx->extflags = extflags;
     rx->engine   = &re2_engine;
@@ -192,7 +195,17 @@ RE2_comp(pTHX_ SV * const pattern, const U32 flags)
         hv_store(RXp_PAREN_NAMES(rx), it->first.data(), it->first.size(), value, 0);
     }
 
-    rx->lastparen = rx->lastcloseparen = rx->nparens = ri->NumberOfCapturingGroups();
+    /* these are run time properties, not compile time - and we zero the struct
+       above so there is no point in clearing them here.
+
+       rx->lastparen = rx->lastcloseparen = 0;
+    */
+    rx->nparens = ri->NumberOfCapturingGroups();
+
+#if PERL_VERSION >= 37 && PERL_SUBVERSION >=7
+    rx->logical_nparens = rx->nparens;
+#endif
+
 
     Newxz(rx->offs, rx->nparens + 1, regexp_paren_pair);
 
@@ -246,6 +259,11 @@ RE2_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
         if(res[i].data()) {
             re->offs[i].start = res[i].data() - strbeg;
             re->offs[i].end   = res[i].data() - strbeg + res[i].length();
+            /* lastparen is the last paren in the struct that matched,
+             * and is used as an optimization by perl.
+             * lastcloseparen is the last paren in the struct that was closed
+             * lastcloseparen is used to implement $^N */
+            re->lastparen = re->lastcloseparen = i;
         } else {
             re->offs[i].start = -1;
             re->offs[i].end   = -1;
