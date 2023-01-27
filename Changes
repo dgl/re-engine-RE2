@@ -1,3 +1,6 @@
+0.16 2023-01-27
+- Unbreak on blead Perl (PR #10, thanks Yves Orton)
+
 0.15 2021-07-23
 - Update to latest RE2, as a result this now requires a C++11 compiler
 - Detect clang and force it to use C++11
