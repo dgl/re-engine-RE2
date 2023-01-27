@@ -161,7 +161,7 @@ RE2_comp(pTHX_ SV * const pattern, const U32 flags)
     regexp *const rx = SvANY(rx_sv);
     /* Zero the structure before we populate it. This future proofs us
      * from any new fields or whatnot in the REGEXP structure */
-    Zero(rx,1,REGEXP);
+    Zero(rx,1,regexp);
 
     rx->extflags = extflags;
     rx->engine   = &re2_engine;
