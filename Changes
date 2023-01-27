@@ -1,3 +1,6 @@
+0.17 2023-01-27
+- Fix bug in previous, Zeroing with wrong size (PR #11)
+
 0.16 2023-01-27
 - Unbreak on blead Perl (PR #10, thanks Yves Orton)
 

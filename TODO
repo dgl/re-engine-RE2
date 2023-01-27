@@ -29,14 +29,12 @@
   once UTF-8 is working to some extent.  An alternative could be to
   make things explicit (e.g. you need to say "no feature
   'unicode_strings'" if you happen to have enabled them to use RE2).
-* Switch to dzil
 * Support more options
 ** never_nl could be useful for cpangrep optimisations
 * Support RE2::Set functionality
   i.e. a Regexp::RE2::Set class that can have RE2 regexps added into it
-  then either a match method or maybe overload ~~?
+  then a match method.
 * Improve tests
-** See if t/re/re_tests from Perl can be used.
 ** Improve performance comparisons
    See maybe https://github.com/axiak/pyre2/blob/master/tests/performance.py
 * Support /x (probably needs RE2 changes to do properly)
