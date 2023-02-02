@@ -255,7 +255,7 @@ RE2_exec(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
     re->subbeg = strbeg;
     re->sublen = strend - strbeg;
 
-    for (int i = 0; i <= re->nparens; i++) {
+    for (U32 i = 0; i <= re->nparens; i++) {
         if(res[i].data()) {
             re->offs[i].start = res[i].data() - strbeg;
             re->offs[i].end   = res[i].data() - strbeg + res[i].length();
