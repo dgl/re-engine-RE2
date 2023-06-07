@@ -13,10 +13,8 @@ re2/CONTRIBUTORS
 re2/doc/mksyntaxgo
 re2/doc/mksyntaxhtml
 re2/doc/mksyntaxwiki
-re2/doc/README.xkcd
 re2/doc/syntax.html
 re2/doc/syntax.txt
-re2/doc/xkcd.png
 re2/lib/git/commit-msg.hook
 re2/libre2.symbols
 re2/libre2.symbols.darwin
