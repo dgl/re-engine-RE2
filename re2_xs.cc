@@ -202,7 +202,7 @@ RE2_comp(pTHX_ SV * const pattern, const U32 flags)
     */
     rx->nparens = ri->NumberOfCapturingGroups();
 
-#if PERL_VERSION >= 37 && PERL_SUBVERSION >=7
+#if (PERL_VERSION >= 37 && PERL_SUBVERSION >=7) || PERL_VERSION > 37
     rx->logical_nparens = rx->nparens;
 #endif
 
