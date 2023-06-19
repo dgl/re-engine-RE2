@@ -14,8 +14,8 @@ DESCRIPTION
 
     RE2 is a primarily DFA based regexp engine from Google that is very fast
     at matching large amounts of text. However it does not support look
-    behind and some other Perl regular expression features. See
-    http://code.google.com/p/re2 for more information.
+    behind and some other Perl regular expression features. See RE2's
+    website <http://code.google.com/p/re2> for more information.
 
     Fallback to normal Perl regexp is implemented by this module. If RE2 is
     unable to compile a regexp it will use Perl instead, therefore features
@@ -37,6 +37,48 @@ METHODS
             my($min, $max) = qr/^(a|b)/->possible_match_range;
             is $min, 'a';
             is $max, 'c';'
+
+    *   "named_captures()"
+
+        Returns a hash of the name captures and index.
+
+        Example:
+
+            my $named_captures = qr/(?P<a>\w+) (?P<d>\w+)/->named_captures;
+            is $named_captures->{a}, 1;
+            is $named_captures->{d}, 2;
+
+    *   "number_of_capture_groups()"
+
+        Return number of capture groups
+
+        Example:
+
+            my $captures = qr/(Hello), (world)/->number_of_capture_groups;
+            is $captures, 2;
+
+PRAGMA OPTIONS
+    Various options can be set by providing options to the "use" line. These
+    will be pragma scoped.
+
+    *   "-max_mem => 1<<24"
+
+        Configure RE2's memory limit.
+
+    *   "-strict => 1"
+
+        Be strict, i.e. don't allow regexps that are not supported by RE2.
+
+    *   "-longest_match => 1"
+
+        Match on the longest match in alternations. For example with this
+        option set matching "abc" against "(a|abc)" will match "abc",
+        without depending on order.
+
+    *   "-never_nl => 1"
+
+        Never match a newline ("\n") even if the provided regexp contains
+        it.
 
 PERFORMANCE
     Performance is really the primary reason for using RE2, so here's some
@@ -102,6 +144,8 @@ NOTES
 
           # Perl Regexp used instead
           ok not qr/(?<=foo)bar/->isa("re::engine::RE2");
+
+        If you wish to force RE2, use the "-strict" option.
 
 BUGS
     Known issues:
